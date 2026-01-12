@@ -24,4 +24,4 @@ Ikuti panduan lengkap ini untuk menjalankan dashboard website Aqting di perangka
 1. **Prasyarat:** Pastikan **Node.js** sudah terinstal di komputer Anda.
 2. **Instalasi:** Buka terminal di folder proyek, lalu jalankan perintah:
    ```bash
-   npm install](https://api.deline.web.id/dXdcP13M9P.png)
+   npm install
