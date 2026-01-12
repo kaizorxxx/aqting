@@ -1,31 +1,27 @@
-<div align="center">
-  <img src="https://api.deline.web.id/dXdcP13M9P.png" width="150" alt="Aqting Logo" />
-  
-  <h1>Aqting: Master the Art of Editing</h1>
-  <p>Platform Kursus Editing Terlengkap untuk Semua Software Pascaproduksi</p>
+[<div align="center">
+  <img src="https://api.deline.web.id/dXdcP13M9P.png" width="180" alt="Aqting Logo" />
+  <h1>Aqting: Master the Art of Mobile & Desktop Editing</h1>
+  <p>Solusi Kursus Editing Praktis dan Elegan untuk Kreator Masa Kini</p>
 </div>
 
 ---
 
 ## 🎬 Tentang Aqting
-**Aqting** adalah tempat belajar bagi para kreator visual untuk menguasai berbagai perangkat lunak editing profesional. Kami menyediakan kurikulum yang dirancang untuk mengubah pemula menjadi editor ahli dengan standar industri.
+**Aqting** adalah platform edukasi yang berfokus pada pemberdayaan kreator melalui penguasaan software editing yang populer dan aksesibel. Kami menyediakan kurikulum terstruktur untuk membantu Anda menghasilkan karya berkualitas profesional hanya dengan perangkat harian Anda.
 
 ### Software yang Diajarkan:
-* **Adobe Premiere Pro** (Pro-Video Editing)
-* **Adobe After Effects** (Visual Effects & Motion Graphics)
-* **DaVinci Resolve** (Color Grading & Finishing)
-* **CapCut Desktop & Final Cut Pro** (Fast-paced Editing)
+* **Canva** (Graphic Design & Branding)
+* **CapCut** (Video Editing PC & Mobile)
+* **VN Video Editor** (Precision Mobile Editing)
+* **Pixellab** (Advanced Mobile Typography & Design)
 
 ---
 
 ## 🚀 Langkah-Langkah Menjalankan Proyek Lokal
 
-Ikuti panduan berikut untuk menjalankan dashboard website Aqting di komputer Anda:
+Ikuti panduan lengkap ini untuk menjalankan dashboard website Aqting di perangkat Anda:
 
-### 1. Prasyarat
-Pastikan Anda sudah menginstal **Node.js** (Versi LTS direkomendasikan).
-
-### 2. Instalasi Dependensi
-Buka terminal/command prompt di folder proyek ini, lalu jalankan:
-```bash
-npm install
+1. **Prasyarat:** Pastikan **Node.js** sudah terinstal di komputer Anda.
+2. **Instalasi:** Buka terminal di folder proyek, lalu jalankan perintah:
+   ```bash
+   npm install](https://api.deline.web.id/dXdcP13M9P.png)
