@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" width="150" alt="Aqting Logo" />
+  <img src="[https://api.deline.web.id/dXdcP13M9P.png]" width="150" alt="Aqting Logo" />
   
   <h1>Aqting: Master the Art of Editing</h1>
   <p>Platform Kursus Editing Terlengkap untuk Semua Software Pascaproduksi</p>
