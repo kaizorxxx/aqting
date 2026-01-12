@@ -76,24 +76,36 @@ const Home: React.FC = () => {
         buttonLink: 'https://google.com'
       }];
 
+  const SunIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  );
+
+  const MoonIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  );
+
   return (
-    <div className={`min-h-screen pb-20 transition-colors duration-500 ${isDarkMode ? 'bg-zinc-950' : 'bg-[#fdfdf1]'}`}>
+    <div className={`min-h-screen pb-20 transition-all duration-700 ease-in-out ${isDarkMode ? 'bg-[#0a0a0a]' : 'bg-[#fdfdf1]'}`}>
       {settings && <Popup settings={settings.popup} />}
 
-      {/* Sidebar Navigasi */}
-      <div className={`fixed inset-0 z-[150] transition-opacity duration-700 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-xl" onClick={() => setIsSidebarOpen(false)} />
-        <aside className={`absolute top-0 left-0 h-full w-80 bg-[#00311e]/90 backdrop-blur-[40px] text-white p-8 transition-transform duration-700 cubic-bezier(0.4, 0, 0.2, 1) transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} shadow-[40px_0_80px_rgba(0,0,0,0.4)] border-r border-white/5`}>
+      <div className={`fixed inset-0 z-[150] transition-all duration-700 ease-in-out ${isSidebarOpen ? 'opacity-100 backdrop-blur-xl' : 'opacity-0 pointer-events-none backdrop-blur-none'}`}>
+        <div className="absolute inset-0 bg-black/40" onClick={() => setIsSidebarOpen(false)} />
+        <aside className={`absolute top-0 left-0 h-full w-80 bg-[#00311e]/95 backdrop-blur-2xl text-white p-8 transition-transform duration-700 cubic-bezier(0.4, 0, 0.2, 1) transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} shadow-[40px_0_80px_rgba(0,0,0,0.4)] border-r border-white/5`}>
           <div className="flex items-center gap-3 mb-16 px-4">
             <img src={LOGO_URL} className="w-12 h-12 object-contain filter brightness-0 invert" alt="Logo" />
             <h2 className="text-2xl font-black italic tracking-tighter">AQTING</h2>
           </div>
           <nav className="space-y-4">
             <button onClick={() => {setSelectedMonth('all'); setIsSidebarOpen(false);}} className={`w-full text-left py-5 px-8 rounded-[32px] flex items-center gap-5 transition-all duration-300 font-black text-sm uppercase tracking-wider ${selectedMonth === 'all' ? 'bg-white text-[#00311e] shadow-2xl scale-105' : 'hover:bg-white/10'}`}>
-              <span className="text-xl">📚</span> Library
+              <span className="text-xl">📚</span> Library Materi
             </button>
             <div className="h-px bg-white/10 my-8 mx-4" />
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] mb-6 px-8">Filter</p>
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] mb-6 px-8">Filter Kategori</p>
             <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2 px-2">
               {months.map(m => (
                 <button 
@@ -112,37 +124,35 @@ const Home: React.FC = () => {
         </aside>
       </div>
 
-      {/* Header Utama - Dark Mode Always, Logo & Text Closer */}
-      <header className="fixed top-0 left-0 right-0 z-[100] bg-[#00311e] border-b border-white/5 shadow-2xl transition-all duration-700">
-        <div className="container mx-auto px-6 h-24 flex justify-between items-center">
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-            <img src={LOGO_URL} className="w-14 h-14 object-contain filter brightness-0 invert transition-all duration-500 group-hover:scale-110" alt="Logo" />
-            <h1 className="text-3xl font-black text-white italic tracking-tighter">AQTING</h1>
+      <header className="fixed top-0 left-0 right-0 z-[100] bg-[#001a10] border-b border-white/5 shadow-2xl transition-all duration-700 ease-in-out">
+        <div className="container mx-auto px-4 md:px-6 h-20 md:h-24 flex justify-between items-center">
+          <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+            <img src={LOGO_URL} className="w-10 h-10 md:w-14 md:h-14 object-contain filter brightness-0 invert transition-all duration-500 group-hover:scale-110" alt="Logo" />
+            <h1 className="text-xl md:text-3xl font-black text-white italic tracking-tighter">AQTING</h1>
           </div>
           
-          <div className="flex items-center gap-4">
-            {/* Theme Toggle Button */}
+          <div className="flex items-center gap-2 md:gap-4">
             <button 
                onClick={() => setIsDarkMode(!isDarkMode)}
-               className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all shadow-inner border border-white/5 flex items-center justify-center w-12 h-12"
+               className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/15 transition-all shadow-inner border border-white/5 flex items-center justify-center w-10 h-10 md:w-12 md:h-12"
                title="Toggle Theme"
             >
-               {isDarkMode ? '🌞' : '🌙'}
+               {isDarkMode ? <SunIcon /> : <MoonIcon />}
             </button>
 
             <button 
                onClick={() => setIsSidebarOpen(true)}
-               className="bg-white/10 text-white px-6 py-3 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all flex items-center gap-3 backdrop-blur-md border border-white/5"
+               className="bg-white/10 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-white/20 transition-all flex items-center gap-2 md:gap-3 backdrop-blur-md border border-white/5"
             >
-               <span className="text-xl">☰</span> Explore
+               <span className="text-lg md:text-xl">☰</span> 
+               <span className="hidden xs:inline">Explore</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Banner Slider - Clickable */}
-      <section className="pt-24 bg-black relative">
-        <div className="relative h-[350px] md:h-[600px] w-full group">
+      <section className="pt-20 md:pt-24 bg-black relative">
+        <div className="relative h-[300px] md:h-[600px] w-full group">
           <Swiper
             modules={[Autoplay, Pagination, Navigation]}
             autoplay={{ delay: 10000, disableOnInteraction: false }}
@@ -168,8 +178,8 @@ const Home: React.FC = () => {
                   <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover opacity-60 scale-100 animate-gentle-zoom" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
                   <div className="relative z-10 text-center px-6 max-w-5xl">
-                    <p className="text-white/60 text-[10px] md:text-xs font-black mb-6 tracking-[0.5em] uppercase drop-shadow-lg">{banner.title}</p>
-                    <h2 className="text-4xl md:text-7xl font-black text-[#3ee83e] mb-12 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] tracking-tighter leading-none italic">
+                    <p className="text-white/60 text-[8px] md:text-xs font-black mb-4 md:mb-6 tracking-[0.5em] uppercase drop-shadow-lg">{banner.title}</p>
+                    <h2 className="text-2xl md:text-7xl font-black text-[#3ee83e] mb-8 md:mb-12 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] tracking-tighter leading-none italic">
                         {banner.subtitle}
                     </h2>
                   </div>
@@ -178,46 +188,42 @@ const Home: React.FC = () => {
             ))}
           </Swiper>
 
-          {/* Custom Navigation / Pagination Bar */}
-          <div className="absolute bottom-12 left-0 right-0 z-20 flex items-center justify-center gap-8">
+          <div className="absolute bottom-8 md:bottom-12 left-0 right-0 z-20 flex items-center justify-center gap-6 md:gap-8">
             <button 
                 onClick={toggleAutoplay}
                 className="text-white/50 hover:text-white transition-all transform hover:scale-150 active:scale-90"
             >
                 {isAutoplay ? (
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                 ) : (
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 )}
             </button>
-            <div className="custom-pagination flex items-center gap-4"></div>
+            <div className="custom-pagination flex items-center gap-3 md:gap-4"></div>
           </div>
         </div>
 
-        {/* Boundary Blur Effect */}
-        <div className={`absolute -bottom-2 left-0 right-0 h-40 bg-gradient-to-t transition-colors duration-500 ${isDarkMode ? 'from-zinc-950' : 'from-[#fdfdf1]'} via-transparent to-transparent z-10 pointer-events-none backdrop-blur-[4px]`} />
+        <div className={`absolute -bottom-2 left-0 right-0 h-40 bg-gradient-to-t transition-all duration-700 ${isDarkMode ? 'from-[#0a0a0a]' : 'from-[#fdfdf1]'} via-transparent to-transparent z-10 pointer-events-none backdrop-blur-[4px]`} />
       </section>
 
-      {/* Filter & Konten Utama */}
-      <div className="container mx-auto px-6 max-w-6xl mt-16 relative z-20">
-        <div className={`flex flex-col md:flex-row md:items-end justify-between gap-12 mb-20 border-b pb-12 transition-colors duration-500 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
+      <div className="container mx-auto px-6 max-w-6xl mt-8 md:mt-16 relative z-20">
+        <div className={`flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12 mb-12 md:mb-20 border-b pb-8 md:pb-12 transition-all duration-700 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
           <div className="animate-in slide-in-from-left duration-700">
-            <div className="flex items-center gap-5 mb-6 opacity-60">
-              <div className={`w-14 h-[2px] ${isDarkMode ? 'bg-white' : 'bg-[#00311e]'}`} />
-              <p className={`${isDarkMode ? 'text-white' : 'text-[#00311e]'} font-black text-[10px] tracking-[0.4em] uppercase`}>Archive</p>
+            <div className="flex items-center gap-4 md:gap-5 mb-4 md:mb-6 opacity-60">
+              <div className={`w-10 md:w-14 h-[2px] ${isDarkMode ? 'bg-white' : 'bg-[#00311e]'}`} />
+              <p className={`${isDarkMode ? 'text-white' : 'text-[#00311e]'} font-black text-[8px] md:text-[10px] tracking-[0.4em] uppercase transition-colors duration-700`}>Archive</p>
             </div>
-            <h3 className={`${isDarkMode ? 'text-white' : 'text-[#00311e]'} font-black text-6xl md:text-8xl uppercase tracking-tighter leading-[0.8] italic mb-6`}>
+            <h3 className={`${isDarkMode ? 'text-white' : 'text-[#00311e]'} font-black text-4xl md:text-8xl uppercase tracking-tighter leading-[0.8] italic mb-4 md:mb-6 transition-colors duration-700`}>
                 SEMUA<br/>
-                <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? 'from-white via-zinc-400 to-white/20' : 'from-[#00311e] via-[#005a36] to-[#00311e]/20'} tracking-normal not-italic font-extrabold opacity-90`}>MATERI</span>
+                <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? 'from-white via-zinc-500 to-white/20' : 'from-[#00311e] via-[#005a36] to-[#00311e]/20'} tracking-normal not-italic font-extrabold opacity-90`}>MATERI</span>
             </h3>
-            <p className="text-gray-400 font-bold tracking-tight max-w-sm leading-relaxed">Koleksi panduan eksklusif profesional.</p>
+            <p className="text-gray-400 font-bold tracking-tight max-w-sm leading-relaxed text-sm md:text-base">Koleksi panduan eksklusif profesional.</p>
           </div>
           
-          {/* pt-8 and pb-8 to prevent translation clipping */}
-          <div className="flex overflow-x-auto pt-8 pb-8 gap-4 scrollbar-hide px-2">
+          <div className="flex overflow-x-auto pt-6 pb-12 gap-4 scrollbar-hide px-2 -mb-8 snap-x">
             <button 
               onClick={() => setSelectedMonth('all')}
-              className={`whitespace-nowrap px-12 py-5 rounded-[32px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-sm ${selectedMonth === 'all' ? 'bg-[#00311e] text-white shadow-2xl shadow-black/30 -translate-y-4' : (isDarkMode ? 'bg-zinc-900 text-gray-500 border border-white/5 hover:border-white' : 'bg-white text-gray-400 border border-gray-100 hover:border-[#00311e]')}`}
+              className={`whitespace-nowrap snap-center px-10 md:px-12 py-4 md:py-5 rounded-[28px] md:rounded-[32px] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-sm ${selectedMonth === 'all' ? 'bg-[#00311e] text-white shadow-2xl shadow-black/30 -translate-y-4' : (isDarkMode ? 'bg-zinc-900 text-gray-500 border border-white/5 hover:border-white' : 'bg-white text-gray-400 border border-gray-100 hover:border-[#00311e]')}`}
             >
               Semua
             </button>
@@ -225,7 +231,7 @@ const Home: React.FC = () => {
               <button 
                 key={m}
                 onClick={() => setSelectedMonth(m)}
-                className={`whitespace-nowrap px-12 py-5 rounded-[32px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-sm ${selectedMonth === m ? 'bg-[#00311e] text-white shadow-2xl shadow-black/30 -translate-y-4' : (isDarkMode ? 'bg-zinc-900 text-gray-500 border border-white/5 hover:border-white' : 'bg-white text-gray-400 border border-gray-100 hover:border-[#00311e]')}`}
+                className={`whitespace-nowrap snap-center px-10 md:px-12 py-4 md:py-5 rounded-[28px] md:rounded-[32px] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-sm ${selectedMonth === m ? 'bg-[#00311e] text-white shadow-2xl shadow-black/30 -translate-y-4' : (isDarkMode ? 'bg-zinc-900 text-gray-500 border border-white/5 hover:border-white' : 'bg-white text-gray-400 border border-gray-100 hover:border-[#00311e]')}`}
               >
                 {m}
               </button>
@@ -233,8 +239,7 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Grid Kursus */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-14">
           {filteredCourses.length > 0 ? (
             filteredCourses.map((course, idx) => (
               <div key={course.id} className="animate-in fade-in slide-in-from-bottom duration-700" style={{ animationDelay: `${idx * 100}ms` }}>
@@ -242,28 +247,35 @@ const Home: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className={`col-span-full py-48 text-center border-4 border-dashed rounded-[80px] backdrop-blur-md ${isDarkMode ? 'bg-white/5 border-white/5 text-white/10' : 'bg-white/40 border-gray-100 text-[#00311e]/10'}`}>
-               <span className="text-[140px] block mb-10 opacity-5">🎞️</span>
-               <p className="text-3xl font-black italic tracking-tighter">Archive is Empty</p>
+            <div className={`col-span-full py-32 md:py-48 text-center border-4 border-dashed rounded-[60px] md:rounded-[80px] backdrop-blur-md transition-all duration-700 ${isDarkMode ? 'bg-white/5 border-white/5 text-white/10' : 'bg-white/40 border-gray-100 text-[#00311e]/10'}`}>
+               <span className="text-[100px] md:text-[140px] block mb-8 md:mb-10 opacity-5">🎞️</span>
+               <p className="text-xl md:text-3xl font-black italic tracking-tighter transition-colors duration-700">Archive is Empty</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal Video */}
+      {/* Modal Video - Floating Design */}
       {selectedCourse && (
-        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-[60px] flex items-center justify-center md:p-12 p-0 overflow-y-auto animate-in fade-in duration-700">
-          <div className="bg-white w-full max-w-7xl md:rounded-[70px] overflow-hidden relative shadow-[0_60px_120px_rgba(0,0,0,0.6)] h-full md:h-auto md:max-h-[95vh] flex flex-col transform transition-all animate-in zoom-in duration-700">
+        <div 
+          className="fixed inset-0 z-[200] bg-zinc-900/40 backdrop-blur-2xl flex items-center justify-center p-4 md:p-12 overflow-y-auto animate-in fade-in duration-500"
+          onClick={() => setSelectedCourse(null)}
+        >
+          <div 
+            className="bg-white w-full max-w-6xl md:rounded-[50px] rounded-3xl overflow-hidden relative shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] h-fit flex flex-col transform transition-all animate-in zoom-in duration-500 border border-white/20"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button 
               onClick={() => setSelectedCourse(null)}
-              className="absolute top-12 right-12 z-20 bg-black/30 backdrop-blur-xl text-white w-16 h-16 rounded-full hover:bg-black/60 transition-all flex items-center justify-center text-3xl shadow-2xl"
+              className="absolute top-6 right-6 z-20 bg-black/40 backdrop-blur-md text-white w-10 h-10 md:w-14 md:h-14 rounded-full hover:bg-black/60 transition-all flex items-center justify-center text-xl md:text-2xl shadow-xl hover:scale-110"
             >
               ✕
             </button>
             
-            <div className="flex flex-col md:flex-row h-full">
-              <div className="w-full md:w-[75%] bg-black flex flex-col group">
-                <div className="relative pt-[56.25%] w-full shadow-2xl">
+            <div className="flex flex-col md:flex-row">
+              {/* Left Column: Content */}
+              <div className="w-full md:w-[70%] bg-white flex flex-col">
+                <div className="relative pt-[56.25%] w-full bg-black">
                   {selectedCourse.videoUrl.includes('mp4') || selectedCourse.videoUrl.includes('catbox') ? (
                     <video controls className="absolute inset-0 w-full h-full" autoPlay>
                       <source src={selectedCourse.videoUrl} type="video/mp4" />
@@ -272,57 +284,66 @@ const Home: React.FC = () => {
                     <iframe src={selectedCourse.videoUrl} className="absolute inset-0 w-full h-full" allowFullScreen allow="autoplay" />
                   )}
                 </div>
-                <div className="p-12 md:p-24 bg-white flex-1 overflow-y-auto custom-scrollbar">
-                  <div className="flex items-center gap-8 mb-10">
-                    <span className="bg-[#00311e] text-white text-[11px] font-black px-6 py-2.5 rounded-full uppercase tracking-[0.3em] shadow-2xl shadow-[#00311e]/30">{selectedCourse.level}</span>
-                    <div className="h-1.5 w-1.5 bg-gray-200 rounded-full" />
-                    <span className="text-gray-400 font-black text-xs uppercase tracking-widest">{selectedCourse.duration} • {selectedCourse.month}</span>
+                <div className="p-8 md:p-16">
+                  <div className="flex items-center gap-6 mb-8">
+                    <span className="bg-[#00311e] text-white text-[9px] md:text-[11px] font-black px-4 py-2 rounded-full uppercase tracking-[0.3em] shadow-lg shadow-[#00311e]/20">{selectedCourse.level}</span>
+                    <span className="text-gray-400 font-black text-[10px] md:text-xs uppercase tracking-widest">{selectedCourse.duration} • {selectedCourse.month}</span>
                   </div>
-                  <h2 className="text-5xl md:text-7xl font-black text-[#00311e] mb-12 leading-[0.9] tracking-tighter italic">{selectedCourse.title}</h2>
-                  <div className="prose prose-2xl max-w-none text-gray-500 font-bold leading-relaxed tracking-tight">
+                  <h2 className="text-3xl md:text-6xl font-black text-[#00311e] mb-8 leading-[0.95] tracking-tighter italic">{selectedCourse.title}</h2>
+                  <div className="prose prose-lg md:prose-2xl max-w-none text-gray-500 font-bold leading-relaxed tracking-tight">
                     {selectedCourse.description}
                   </div>
                 </div>
               </div>
 
-              <div className="w-full md:w-[25%] bg-[#fcfcfc] flex flex-col h-full border-l border-gray-100/40 backdrop-blur-3xl">
-                 <div className="p-12 border-b border-gray-100 bg-white/60 backdrop-blur-2xl">
-                   <h3 className="text-3xl font-black text-[#00311e] flex items-center gap-5 italic tracking-tighter">
-                     <span className="text-4xl">🗯️</span> Chat
+              {/* Right Column: Chat/Comments */}
+              <div className="w-full md:w-[30%] bg-[#fafafa] flex flex-col border-l border-gray-100/50 backdrop-blur-md">
+                 <div className="p-8 border-b border-gray-100 bg-white/40">
+                   <h3 className="text-2xl font-black text-[#00311e] flex items-center gap-4 italic tracking-tighter">
+                     <span className="text-3xl">🗯️</span> KOMENTAR
                    </h3>
                  </div>
                  
-                 <div className="flex-1 overflow-y-auto p-10 space-y-8 custom-scrollbar">
+                 <div className="flex-1 overflow-y-auto p-6 space-y-6 max-h-[400px] md:max-h-none custom-scrollbar">
                     {comments.map(c => (
-                      <div key={c.id} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100/40 transform transition-all hover:translate-x-2">
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="font-black text-[#00311e] text-[10px] uppercase tracking-tighter bg-[#00311e]/5 px-3 py-1 rounded-full">{c.author}</span>
-                          <span className="text-[9px] text-gray-300 font-bold">{c.time}</span>
+                      <div key={c.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col transform transition-all hover:translate-x-1">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-black text-[#00311e] text-[9px] uppercase tracking-tighter bg-[#00311e]/5 px-3 py-1 rounded-full">{c.author}</span>
+                          <span className="text-[8px] text-gray-300 font-bold">{c.time}</span>
                         </div>
-                        <p className="text-[13px] text-gray-800 leading-relaxed font-bold tracking-tight">{c.text}</p>
+                        <p className="text-[13px] text-gray-700 leading-relaxed font-bold tracking-tight">{c.text}</p>
                       </div>
                     ))}
+                    {comments.length === 0 && (
+                      <div className="text-center py-10 opacity-20 italic font-bold text-sm">Jadilah yang pertama berkomentar!</div>
+                    )}
                  </div>
 
-                 <div className="p-12 bg-white/90 backdrop-blur-[40px] border-t border-gray-100/50">
-                    <input 
-                      placeholder="Nama"
-                      value={commentName}
-                      onChange={e => setCommentName(e.target.value)}
-                      className="w-full mb-5 p-6 bg-gray-50 border border-gray-100/50 rounded-3xl text-sm font-black focus:ring-4 focus:ring-[#00311e]/10 outline-none transition-all placeholder:opacity-30"
-                    />
-                    <textarea 
-                      placeholder="Pertanyaan..."
-                      value={commentText}
-                      onChange={e => setCommentText(e.target.value)}
-                      className="w-full p-6 bg-gray-50 border border-gray-100/50 rounded-3xl text-sm font-bold h-36 resize-none focus:ring-4 focus:ring-[#00311e]/10 outline-none transition-all placeholder:opacity-30"
-                    />
-                    <button 
-                      onClick={handlePostComment}
-                      className="w-full mt-8 bg-[#00311e] text-white py-6 rounded-[32px] font-black text-xl hover:bg-[#005a36] shadow-[0_20px_40px_rgba(0,49,30,0.4)] transition-all hover:scale-[1.03] active:scale-95"
-                    >
-                      Kirim Pesan
-                    </button>
+                 <div className="p-8 bg-white border-t border-gray-100">
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <input 
+                          placeholder="Nama Anda"
+                          value={commentName}
+                          onChange={e => setCommentName(e.target.value)}
+                          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-[#00311e]/10 focus:border-[#00311e]/30 outline-none transition-all placeholder:text-gray-300 shadow-inner"
+                        />
+                      </div>
+                      <div className="relative">
+                        <textarea 
+                          placeholder="Tulis komentar..."
+                          value={commentText}
+                          onChange={e => setCommentText(e.target.value)}
+                          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold h-32 resize-none focus:ring-4 focus:ring-[#00311e]/10 focus:border-[#00311e]/30 outline-none transition-all placeholder:text-gray-300 shadow-inner"
+                        />
+                      </div>
+                      <button 
+                        onClick={handlePostComment}
+                        className="w-full bg-[#00311e] text-white py-5 rounded-[24px] font-black text-lg hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                      >
+                        Kirim Komentar 🚀
+                      </button>
+                    </div>
                  </div>
               </div>
             </div>
@@ -339,14 +360,20 @@ const Home: React.FC = () => {
           animation: gentle-zoom 25s ease-in-out infinite alternate;
         }
         .custom-pagination .swiper-pagination-bullet {
-          width: 12px;
-          height: 12px;
+          width: 10px;
+          height: 10px;
           background: #fff;
           opacity: 0.2;
           margin: 0 !important;
           border-radius: 50%;
           transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
           border: 1.5px solid rgba(255,255,255,0.4);
+        }
+        @media (min-width: 768px) {
+          .custom-pagination .swiper-pagination-bullet {
+            width: 12px;
+            height: 12px;
+          }
         }
         .custom-pagination .swiper-pagination-bullet-active {
           background: #3ee83e !important;
@@ -362,6 +389,14 @@ const Home: React.FC = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #00311e33;
           border-radius: 10px;
+        }
+        .xs\:inline {
+          display: none;
+        }
+        @media (min-width: 480px) {
+          .xs\:inline {
+            display: inline;
+          }
         }
       `}</style>
     </div>
