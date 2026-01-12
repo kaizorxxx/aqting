@@ -1,20 +1,31 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" width="150" alt="Aqting Logo" />
+  
+  <h1>Aqting: Master the Art of Editing</h1>
+  <p>Platform Kursus Editing Terlengkap untuk Semua Software Pascaproduksi</p>
 </div>
 
-# Run and deploy your AI Studio app
+---
 
-This contains everything you need to run your app locally.
+## 🎬 Tentang Aqting
+**Aqting** adalah tempat belajar bagi para kreator visual untuk menguasai berbagai perangkat lunak editing profesional. Kami menyediakan kurikulum yang dirancang untuk mengubah pemula menjadi editor ahli dengan standar industri.
 
-View your app in AI Studio: https://ai.studio/apps/drive/18tcNmIEOQ3vtdqv9AZDNeld5L2PqpYRm
+### Software yang Diajarkan:
+* **Adobe Premiere Pro** (Pro-Video Editing)
+* **Adobe After Effects** (Visual Effects & Motion Graphics)
+* **DaVinci Resolve** (Color Grading & Finishing)
+* **CapCut Desktop & Final Cut Pro** (Fast-paced Editing)
 
-## Run Locally
+---
 
-**Prerequisites:**  Node.js
+## 🚀 Langkah-Langkah Menjalankan Proyek Lokal
 
+Ikuti panduan berikut untuk menjalankan dashboard website Aqting di komputer Anda:
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 1. Prasyarat
+Pastikan Anda sudah menginstal **Node.js** (Versi LTS direkomendasikan).
+
+### 2. Instalasi Dependensi
+Buka terminal/command prompt di folder proyek ini, lalu jalankan:
+```bash
+npm install
