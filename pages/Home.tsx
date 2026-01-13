@@ -126,9 +126,12 @@ const Home: React.FC = () => {
 
       <header className="fixed top-0 left-0 right-0 z-[100] bg-[#001a10] border-b border-white/5 shadow-2xl transition-all duration-700 ease-in-out">
         <div className="container mx-auto px-4 md:px-6 h-20 md:h-24 flex justify-between items-center">
-          <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+          <div className="flex items-center gap-2 md:gap-4 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
             <img src={LOGO_URL} className="w-10 h-10 md:w-14 md:h-14 object-contain filter brightness-0 invert transition-all duration-500 group-hover:scale-110" alt="Logo" />
-            <h1 className="text-xl md:text-3xl font-black text-white italic tracking-tighter">AQTING</h1>
+            <div className="flex flex-col">
+                <h1 className="text-xl md:text-2xl font-black text-white italic tracking-tighter leading-none">AQTING Class</h1>
+                <span className="text-[#3ee83e] text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mt-1">Pro Edition</span>
+            </div>
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
@@ -255,7 +258,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Video - New Floating Design with backdrop blur */}
+      {/* Modal Video - Floating Design with backdrop blur */}
       {selectedCourse && (
         <div 
           className="fixed inset-0 z-[200] bg-zinc-900/40 backdrop-blur-3xl flex items-center justify-center p-4 md:p-12 overflow-y-auto animate-in fade-in duration-500"
