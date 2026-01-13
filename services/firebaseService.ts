@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, remove, push, get, child } from 'firebase/database';
+import { getDatabase, ref, onValue, set, remove, push, get } from 'firebase/database';
 import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../types';
 
 const firebaseConfig = {
@@ -41,7 +41,6 @@ export const addCourse = async (course: Omit<Course, 'id'>) => {
 
 export const deleteCourse = async (courseId: string) => {
   await remove(ref(db, `courses/${courseId}`));
-  // Also clean up associated comments
   await remove(ref(db, `comments/${courseId}`));
 };
 
@@ -78,12 +77,13 @@ export const subscribeToSettings = (callback: (settings: AppSettings) => void) =
   return onValue(settingsRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
-      callback(data);
+      callback({
+        popup: data.popup || { enabled: false, image: '🎥', text: 'Selamat Datang!', link: '#' },
+        banners: data.banners || {}
+      });
     } else {
-      // Default settings if none exist
       callback({
         popup: { enabled: false, image: '🎥', text: 'Selamat Datang!', link: '#' },
-        // Use empty object for Record type
         banners: {}
       });
     }
@@ -101,12 +101,5 @@ export const addBanner = async (banner: Omit<BannerSlide, 'id'>) => {
 };
 
 export const deleteBanner = async (bannerId: string) => {
-  const bannerRef = ref(db, 'settings/banners');
-  const snapshot = await get(bannerRef);
-  const data = snapshot.val();
-  if (data) {
-    const newData = { ...data };
-    delete newData[bannerId];
-    await set(bannerRef, newData);
-  }
+  await remove(ref(db, `settings/banners/${bannerId}`));
 };

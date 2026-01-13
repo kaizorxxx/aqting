@@ -71,9 +71,9 @@ const Home: React.FC = () => {
     : [{
         id: 'default',
         title: 'Professional Editing Class',
-        subtitle: 'Cashback 70% s/d 10rb Gopay Coins!!!',
+        subtitle: 'Selamat Datang di AQTING!',
         imageUrl: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=1920',
-        buttonLink: 'https://google.com'
+        buttonLink: '#'
       }];
 
   const SunIcon = () => (
@@ -128,10 +128,7 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4 md:px-6 h-20 md:h-24 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-4 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
             <img src={LOGO_URL} className="w-10 h-10 md:w-14 md:h-14 object-contain filter brightness-0 invert transition-all duration-500 group-hover:scale-110" alt="Logo" />
-            <div className="flex flex-col">
-                <h1 className="text-xl md:text-2xl font-black text-white italic tracking-tighter leading-none">AQTING Class</h1>
-                <span className="text-[#3ee83e] text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mt-1">Pro Edition</span>
-            </div>
+            <h1 className="text-xl md:text-3xl font-black text-white italic tracking-tighter">AQTING</h1>
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
@@ -157,6 +154,7 @@ const Home: React.FC = () => {
       <section className="pt-20 md:pt-24 bg-black relative">
         <div className="relative h-[300px] md:h-[600px] w-full group">
           <Swiper
+            key={`swiper-${bannerList.length}`} // CRITICAL: Reset swiper when banner count changes
             modules={[Autoplay, Pagination, Navigation]}
             autoplay={{ delay: 10000, disableOnInteraction: false }}
             pagination={{ 
@@ -167,11 +165,11 @@ const Home: React.FC = () => {
                 }
             }}
             onSwiper={(swiper) => (swiperRef.current = swiper)}
-            loop={true}
+            loop={bannerList.length > 1}
             className="h-full w-full"
           >
-            {bannerList.map((banner) => (
-              <SwiperSlide key={banner.id}>
+            {bannerList.map((banner, index) => (
+              <SwiperSlide key={banner.id || index}>
                 <a 
                   href={banner.buttonLink || '#'} 
                   target={banner.buttonLink?.startsWith('http') ? "_blank" : "_self"} 
@@ -191,19 +189,21 @@ const Home: React.FC = () => {
             ))}
           </Swiper>
 
-          <div className="absolute bottom-8 md:bottom-12 left-0 right-0 z-20 flex items-center justify-center gap-6 md:gap-8">
-            <button 
-                onClick={toggleAutoplay}
-                className="text-white/50 hover:text-white transition-all transform hover:scale-150 active:scale-90"
-            >
-                {isAutoplay ? (
-                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                ) : (
-                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                )}
-            </button>
-            <div className="custom-pagination flex items-center gap-3 md:gap-4"></div>
-          </div>
+          {bannerList.length > 0 && (
+            <div className="absolute bottom-8 md:bottom-12 left-0 right-0 z-20 flex items-center justify-center gap-6 md:gap-8">
+              <button 
+                  onClick={toggleAutoplay}
+                  className="text-white/50 hover:text-white transition-all transform hover:scale-150 active:scale-90"
+              >
+                  {isAutoplay ? (
+                      <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  ) : (
+                      <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  )}
+              </button>
+              <div className="custom-pagination flex items-center gap-3 md:gap-4"></div>
+            </div>
+          )}
         </div>
 
         <div className={`absolute -bottom-2 left-0 right-0 h-40 bg-gradient-to-t transition-all duration-700 ${isDarkMode ? 'from-[#0a0a0a]' : 'from-[#fdfdf1]'} via-transparent to-transparent z-10 pointer-events-none backdrop-blur-[4px]`} />
@@ -258,7 +258,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Video - Floating Design with backdrop blur */}
+      {/* Modal Video - Floating Design */}
       {selectedCourse && (
         <div 
           className="fixed inset-0 z-[200] bg-zinc-900/40 backdrop-blur-3xl flex items-center justify-center p-4 md:p-12 overflow-y-auto animate-in fade-in duration-500"
@@ -276,7 +276,6 @@ const Home: React.FC = () => {
             </button>
             
             <div className="flex flex-col md:flex-row">
-              {/* Left Content Area */}
               <div className="w-full md:w-[70%] bg-white flex flex-col">
                 <div className="relative pt-[56.25%] w-full bg-black">
                   {selectedCourse.videoUrl.includes('mp4') || selectedCourse.videoUrl.includes('catbox') ? (
@@ -299,7 +298,6 @@ const Home: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right Sidebar - Comments Area */}
               <div className="w-full md:w-[30%] bg-[#fafafa] flex flex-col border-l border-gray-100/50 backdrop-blur-md">
                  <div className="p-8 border-b border-gray-100 bg-white/40">
                    <h3 className="text-2xl font-black text-[#00311e] flex items-center gap-4 italic tracking-tighter">

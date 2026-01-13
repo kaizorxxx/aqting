@@ -19,6 +19,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState<'config' | 'courses' | 'comments'>('config');
   const [courses, setCourses] = useState<Course[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Forms state
   const [newCourse, setNewCourse] = useState<Omit<Course, 'id'>>({
@@ -42,22 +43,49 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   }, [settings]);
 
   const handleSavePopup = async () => {
-    await updatePopupSettings(popupEdit);
-    alert('Popup settings updated! ✅');
+    setIsSubmitting(true);
+    try {
+      await updatePopupSettings(popupEdit);
+      alert('Pengaturan Popup berhasil diperbarui! 📢');
+    } catch (e) {
+      alert('Gagal memperbarui popup.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddBanner = async () => {
-    if (!newBanner.title || !newBanner.imageUrl) return;
-    await addBanner(newBanner);
-    setNewBanner({ title: '', subtitle: '', imageUrl: '', buttonLink: '' });
-    alert('Slide Banner ditambahkan! 🖼️');
+    if (!newBanner.title || !newBanner.imageUrl) {
+      alert('Mohon isi Judul dan URL Gambar Banner.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await addBanner(newBanner);
+      setNewBanner({ title: '', subtitle: '', imageUrl: '', buttonLink: '' });
+      alert('Banner baru berhasil ditambahkan! 🖼️');
+    } catch (e) {
+      alert('Gagal menambah banner.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddCourse = async () => {
-    if (!newCourse.title || !newCourse.videoUrl) return;
-    await addCourse({ ...newCourse, uploadTime: new Date().toLocaleString('id-ID') });
-    setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Pemula', icon: '🎬', month: '', uploadTime: '' });
-    alert('Materi Berhasil Diupload! 🎞️');
+    if (!newCourse.title || !newCourse.videoUrl) {
+      alert('Judul dan URL Video wajib diisi.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await addCourse({ ...newCourse, uploadTime: new Date().toLocaleString('id-ID') });
+      setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Pemula', icon: '🎬', month: '', uploadTime: '' });
+      alert('Materi berhasil diupload! 🎞️');
+    } catch (e) {
+      alert('Gagal upload materi.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,22 +93,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       <aside className="w-full md:w-80 bg-[#00311e] text-white flex flex-col p-8 shadow-2xl z-[100]">
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">⚙️</div>
+            <img src="https://api.deline.web.id/sIzpbEAP1y.png" className="w-8 h-8 object-contain filter brightness-0 invert" alt="Logo" />
             <h1 className="text-3xl font-black italic tracking-tighter">AQTING</h1>
           </div>
-          <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Admin Control Center</p>
+          <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Control Panel</p>
         </div>
         
         <nav className="flex-1 space-y-4">
           <button 
             onClick={() => setActiveTab('config')}
-            className={`w-full text-left p-5 rounded-[24px] flex items-center gap-4 font-black text-sm transition-all ${activeTab === 'config' ? 'bg-white text-[#00311e] shadow-2xl' : 'hover:bg-white/10'}`}
+            className={`w-full text-left p-5 rounded-[24px] flex items-center gap-4 font-black text-sm transition-all ${activeTab === 'config' ? 'bg-white text-[#00311e] shadow-2xl scale-105' : 'hover:bg-white/10 opacity-70 hover:opacity-100'}`}
           >
             ⚙️ Pengaturan Web
           </button>
           <button 
             onClick={() => setActiveTab('courses')}
-            className={`w-full text-left p-5 rounded-[24px] flex items-center gap-4 font-black text-sm transition-all ${activeTab === 'courses' ? 'bg-white text-[#00311e] shadow-2xl' : 'hover:bg-white/10'}`}
+            className={`w-full text-left p-5 rounded-[24px] flex items-center gap-4 font-black text-sm transition-all ${activeTab === 'courses' ? 'bg-white text-[#00311e] shadow-2xl scale-105' : 'hover:bg-white/10 opacity-70 hover:opacity-100'}`}
           >
             🎞️ Kelola Materi
           </button>
@@ -97,74 +125,129 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       </aside>
 
       <main className="flex-1 p-8 md:p-16 overflow-y-auto max-h-screen custom-scrollbar">
-        <header className="mb-16">
-          <h2 className="text-4xl font-black text-[#00311e] tracking-tighter capitalize">{activeTab.replace('config', 'Konfigurasi')}</h2>
-          <p className="text-gray-400 font-bold">Update konten secara instan ke seluruh pengguna.</p>
+        <header className="mb-16 flex justify-between items-end">
+          <div>
+            <h2 className="text-5xl font-black text-[#00311e] tracking-tighter capitalize">{activeTab === 'config' ? 'Konfigurasi' : 'Koleksi Materi'}</h2>
+            <p className="text-gray-400 font-bold mt-2">Pembaruan data akan langsung tampil di aplikasi pengguna.</p>
+          </div>
+          <div className="hidden md:block bg-[#00311e]/5 px-6 py-3 rounded-2xl border border-[#00311e]/10">
+            <span className="text-[10px] font-black text-[#00311e] uppercase tracking-widest">Status Sistem:</span>
+            <span className="ml-2 text-green-600 font-bold text-xs uppercase tracking-widest animate-pulse">Online</span>
+          </div>
         </header>
 
         {activeTab === 'config' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Banner Management */}
-            <section className="bg-white p-10 rounded-[48px] shadow-xl shadow-gray-200/50 border border-gray-100">
+            <section className="bg-white p-10 rounded-[48px] shadow-2xl shadow-gray-200/50 border border-gray-100 animate-in slide-in-from-bottom duration-500">
                <h3 className="text-2xl font-black text-[#00311e] mb-10 flex items-center gap-4">
-                 <span className="bg-blue-100 w-12 h-12 rounded-2xl flex items-center justify-center text-xl">🖼️</span> Banner Slider
+                 <span className="bg-blue-100 w-12 h-12 rounded-2xl flex items-center justify-center text-xl">🖼️</span> Slide Banner
                </h3>
                
-               <div className="space-y-4 mb-10 p-6 bg-gray-50 rounded-[32px]">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Tambah Slide Baru</p>
-                  <input placeholder="Judul Banner" className="w-full p-4 bg-white border border-gray-100 rounded-2xl font-bold" value={newBanner.title} onChange={e => setNewBanner({...newBanner, title: e.target.value})} />
-                  <input placeholder="Deskripsi Singkat" className="w-full p-4 bg-white border border-gray-100 rounded-2xl font-medium" value={newBanner.subtitle} onChange={e => setNewBanner({...newBanner, subtitle: e.target.value})} />
-                  <input placeholder="URL Gambar (Direct Link)" className="w-full p-4 bg-white border border-gray-100 rounded-2xl font-mono text-xs" value={newBanner.imageUrl} onChange={e => setNewBanner({...newBanner, imageUrl: e.target.value})} />
-                  <input placeholder="Tautan Tombol (Opsional)" className="w-full p-4 bg-white border border-gray-100 rounded-2xl" value={newBanner.buttonLink} onChange={e => setNewBanner({...newBanner, buttonLink: e.target.value})} />
-                  <button onClick={handleAddBanner} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition-all shadow-lg">Tambah Slide</button>
+               <div className="space-y-4 mb-10 p-8 bg-gray-50 rounded-[40px] border border-gray-100">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Form Slide Baru</p>
+                  <input placeholder="Judul Banner" className="w-full p-5 bg-white border border-gray-100 rounded-2xl font-black text-[#00311e] focus:ring-4 focus:ring-blue-100 outline-none transition-all" value={newBanner.title} onChange={e => setNewBanner({...newBanner, title: e.target.value})} />
+                  <input placeholder="Subtitle" className="w-full p-5 bg-white border border-gray-100 rounded-2xl font-bold text-gray-600 focus:ring-4 focus:ring-blue-100 outline-none transition-all" value={newBanner.subtitle} onChange={e => setNewBanner({...newBanner, subtitle: e.target.value})} />
+                  <input placeholder="URL Gambar (Direct Link)" className="w-full p-5 bg-white border border-gray-100 rounded-2xl font-mono text-xs focus:ring-4 focus:ring-blue-100 outline-none transition-all" value={newBanner.imageUrl} onChange={e => setNewBanner({...newBanner, imageUrl: e.target.value})} />
+                  
+                  {newBanner.imageUrl && (
+                    <div className="relative aspect-video rounded-3xl overflow-hidden border-2 border-dashed border-blue-200 bg-blue-50 flex items-center justify-center">
+                       <img src={newBanner.imageUrl} className="w-full h-full object-cover opacity-80" alt="Preview" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                       <div className="absolute bottom-2 right-2 bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase">Live Preview</div>
+                    </div>
+                  )}
+
+                  <input placeholder="Target Link (https://...)" className="w-full p-5 bg-white border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 outline-none transition-all" value={newBanner.buttonLink} onChange={e => setNewBanner({...newBanner, buttonLink: e.target.value})} />
+                  <button 
+                    disabled={isSubmitting}
+                    onClick={handleAddBanner} 
+                    className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 disabled:opacity-50 mt-4"
+                  >
+                    {isSubmitting ? 'Memproses...' : 'Tambahkan Slide 🚀'}
+                  </button>
                </div>
 
                <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-4">Slide Aktif</h4>
-                  {settings?.banners && (Object.entries(settings.banners) as [string, BannerSlide][]).map(([id, b]) => (
-                    <div key={id} className="flex items-center gap-4 p-4 bg-white rounded-3xl border border-gray-100 shadow-sm group">
-                       <img src={b.imageUrl} className="w-16 h-16 rounded-2xl object-cover" alt="Preview" />
-                       <div className="flex-1 min-w-0">
-                          <p className="text-sm font-black text-[#00311e] truncate">{b.title}</p>
-                       </div>
-                       <button onClick={() => deleteBanner(id)} className="w-10 h-10 flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-500 hover:text-white rounded-xl transition-all">🗑️</button>
+                  <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-6">Urutan Slide Saat Ini</h4>
+                  {settings?.banners && Object.keys(settings.banners).length > 0 ? (
+                    /* Added type assertion [string, BannerSlide][] to Object.entries to resolve 'unknown' type error */
+                    (Object.entries(settings.banners) as [string, BannerSlide][]).map(([id, b]) => (
+                      <div key={id} className="flex items-center gap-6 p-5 bg-white rounded-[32px] border border-gray-100 shadow-sm group hover:border-blue-200 transition-all">
+                         <img src={b.imageUrl} className="w-20 h-20 rounded-2xl object-cover shadow-inner" alt="Banner" />
+                         <div className="flex-1 min-w-0">
+                            <p className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">{b.subtitle}</p>
+                            <p className="text-lg font-black text-[#00311e] truncate leading-none">{b.title}</p>
+                         </div>
+                         <button 
+                           onClick={() => confirm('Hapus slide ini?') && deleteBanner(id)} 
+                           className="w-12 h-12 flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-500 hover:text-white rounded-2xl transition-all shadow-sm"
+                         >
+                           🗑️
+                         </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 text-gray-300 font-bold italic">
+                       Belum ada banner aktif.
                     </div>
-                  ))}
+                  )}
                </div>
             </section>
 
             {/* Popup Management */}
-            <section className="bg-white p-10 rounded-[48px] shadow-xl shadow-gray-200/50 border border-gray-100">
+            <section className="bg-white p-10 rounded-[48px] shadow-2xl shadow-gray-200/50 border border-gray-100 animate-in slide-in-from-bottom duration-500" style={{animationDelay: '100ms'}}>
                <div className="flex justify-between items-center mb-10">
                   <h3 className="text-2xl font-black text-[#00311e] flex items-center gap-4">
                     <span className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center text-xl">📢</span> Kontrol Popup
                   </h3>
-                  <label className="relative inline-flex items-center cursor-pointer scale-125">
+                  <label className="relative inline-flex items-center cursor-pointer scale-150">
                       <input type="checkbox" checked={popupEdit.enabled} onChange={e => setPopupEdit({...popupEdit, enabled: e.target.checked})} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00311e]"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
                   </label>
                </div>
+               
                <div className="space-y-6">
-                  <input placeholder="Icon Preview (Emoji/URL)" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={popupEdit.image} onChange={e => setPopupEdit({...popupEdit, image: e.target.value})} />
-                  <textarea placeholder="Pesan Popup" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-medium h-32 resize-none" value={popupEdit.text} onChange={e => setPopupEdit({...popupEdit, text: e.target.value})} />
-                  <input placeholder="Redirect Link" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl" value={popupEdit.link} onChange={e => setPopupEdit({...popupEdit, link: e.target.value})} />
-                  <button onClick={handleSavePopup} className="w-full bg-[#00311e] text-white py-5 rounded-[24px] font-black text-lg hover:bg-[#005a36] shadow-xl transition-all">Simpan Pengaturan Popup</button>
+                  <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Konten Popup</p>
+                    <input placeholder="Icon (Emoji atau URL Gambar)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl font-black text-2xl text-center focus:bg-white transition-all shadow-inner" value={popupEdit.image} onChange={e => setPopupEdit({...popupEdit, image: e.target.value})} />
+                  </div>
+                  <textarea placeholder="Tulis pesan pengumuman di sini..." className="w-full p-6 bg-gray-50 border border-gray-100 rounded-[32px] font-bold text-[#00311e] h-48 resize-none focus:bg-white transition-all shadow-inner" value={popupEdit.text} onChange={e => setPopupEdit({...popupEdit, text: e.target.value})} />
+                  <input placeholder="Tautan Tujuan (https://...)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl focus:bg-white transition-all shadow-inner" value={popupEdit.link} onChange={e => setPopupEdit({...popupEdit, link: e.target.value})} />
+                  
+                  <button 
+                    disabled={isSubmitting}
+                    onClick={handleSavePopup} 
+                    className="w-full bg-[#00311e] text-white py-6 rounded-[32px] font-black text-xl hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/20 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Menyimpan...' : 'Update Popup Aktif ✅'}
+                  </button>
+               </div>
+               
+               <div className="mt-12 p-8 bg-orange-50 rounded-[40px] border border-orange-100">
+                  <h4 className="text-xs font-black text-orange-800 uppercase tracking-widest mb-4">💡 Tips Kelola Popup</h4>
+                  <ul className="text-sm text-orange-900/60 font-bold space-y-2">
+                    <li>• Gunakan emoji besar jika tidak ingin pakai URL gambar.</li>
+                    <li>• Link bisa mengarah ke WhatsApp atau Form pendaftaran.</li>
+                    <li>• Nonaktifkan (toggle off) jika tidak ada event mendesak.</li>
+                  </ul>
                </div>
             </section>
           </div>
         )}
 
         {activeTab === 'courses' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-             <div className="bg-white p-10 rounded-[48px] shadow-xl border border-gray-100 h-fit">
-                <h3 className="text-2xl font-black text-[#00311e] mb-10">Publish Materi</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 animate-in fade-in duration-500">
+             <div className="bg-white p-10 rounded-[48px] shadow-2xl border border-gray-100 h-fit sticky top-8">
+                <h3 className="text-2xl font-black text-[#00311e] mb-10 flex items-center gap-4">
+                  <span className="bg-green-100 w-12 h-12 rounded-2xl flex items-center justify-center text-xl">🎞️</span> Rilis Materi
+                </h3>
                 <div className="space-y-4">
-                   <input placeholder="Judul Materi" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={newCourse.title} onChange={e => setNewCourse({...newCourse, title: e.target.value})} />
-                   <textarea placeholder="Deskripsi Materi" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-medium h-32 resize-none" value={newCourse.description} onChange={e => setNewCourse({...newCourse, description: e.target.value})} />
-                   <input placeholder="URL Video (YouTube Embed/MP4)" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-mono text-xs" value={newCourse.videoUrl} onChange={e => setNewCourse({...newCourse, videoUrl: e.target.value})} />
+                   <input placeholder="Judul Materi" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-black text-[#00311e]" value={newCourse.title} onChange={e => setNewCourse({...newCourse, title: e.target.value})} />
+                   <textarea placeholder="Deskripsi Singkat" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-bold h-32 resize-none" value={newCourse.description} onChange={e => setNewCourse({...newCourse, description: e.target.value})} />
+                   <input placeholder="URL Video (YouTube / Catbox MP4)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-mono text-xs" value={newCourse.videoUrl} onChange={e => setNewCourse({...newCourse, videoUrl: e.target.value})} />
                    <div className="grid grid-cols-2 gap-4">
-                     <input placeholder="Durasi (15:00)" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={newCourse.duration} onChange={e => setNewCourse({...newCourse, duration: e.target.value})} />
-                     <select className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={newCourse.level} onChange={e => setNewCourse({...newCourse, level: e.target.value as any})}>
+                     <input placeholder="Durasi (Contoh: 15:40)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={newCourse.duration} onChange={e => setNewCourse({...newCourse, duration: e.target.value})} />
+                     <select className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-black text-[#00311e]" value={newCourse.level} onChange={e => setNewCourse({...newCourse, level: e.target.value as any})}>
                         <option>Pemula</option>
                         <option>Menengah</option>
                         <option>Lanjutan</option>
@@ -172,39 +255,75 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                      </select>
                    </div>
                    <div className="grid grid-cols-2 gap-4">
-                     <input placeholder="Icon (Emoji)" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-center text-xl" value={newCourse.icon} onChange={e => setNewCourse({...newCourse, icon: e.target.value})} />
-                     <input placeholder="Bulan (Jan 2025)" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={newCourse.month} onChange={e => setNewCourse({...newCourse, month: e.target.value})} />
+                     <input placeholder="Icon (Emoji)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl text-center text-3xl shadow-inner" value={newCourse.icon} onChange={e => setNewCourse({...newCourse, icon: e.target.value})} />
+                     <input placeholder="Periode (Bulan)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-black uppercase text-xs tracking-widest text-center" value={newCourse.month} onChange={e => setNewCourse({...newCourse, month: e.target.value})} />
                    </div>
-                   <button onClick={handleAddCourse} className="w-full bg-[#00311e] text-white py-5 rounded-[24px] font-black text-lg hover:bg-[#005a36] shadow-xl mt-6 transition-all">Upload Materi Baru</button>
+                   <button 
+                     disabled={isSubmitting}
+                     onClick={handleAddCourse} 
+                     className="w-full bg-[#00311e] text-white py-6 rounded-[32px] font-black text-xl hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/30 mt-6 transition-all"
+                   >
+                     {isSubmitting ? 'Sedang Upload...' : 'Publikasi Materi 🚀'}
+                   </button>
                 </div>
              </div>
 
              <div className="lg:col-span-2 space-y-6">
-                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-6">Database Materi</h4>
-                {courses.map(c => (
-                  <div key={c.id} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 flex items-center gap-8 group hover:shadow-xl transition-all">
-                     <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center text-4xl group-hover:bg-[#00311e] group-hover:text-white transition-all shadow-inner">
-                        {c.icon}
-                     </div>
-                     <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                           <span className="text-[8px] font-black text-[#00311e] bg-green-50 px-3 py-1 rounded-full uppercase tracking-tighter">{c.level}</span>
-                           <span className="text-[10px] text-gray-400 font-bold uppercase">{c.month}</span>
-                        </div>
-                        <h4 className="font-black text-[#00311e] text-2xl tracking-tight leading-none truncate">{c.title}</h4>
-                     </div>
-                     <button 
-                        onClick={() => confirm('Hapus materi?') && deleteCourse(c.id)}
-                        className="w-14 h-14 flex items-center justify-center bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all"
-                     >
-                        🗑️
-                     </button>
-                  </div>
-                ))}
+                <div className="flex justify-between items-center mb-8 px-4">
+                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Database Perpustakaan</h4>
+                   <span className="text-[10px] font-black text-[#00311e] bg-[#00311e]/5 px-4 py-2 rounded-full border border-[#00311e]/10">Total: {courses.length} Video</span>
+                </div>
+                
+                <div className="space-y-6">
+                  {courses.length > 0 ? courses.map((c, idx) => (
+                    <div key={c.id} className="bg-white p-8 rounded-[48px] shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8 group hover:shadow-2xl hover:border-[#00311e]/10 transition-all animate-in slide-in-from-right duration-500" style={{animationDelay: `${idx * 50}ms`}}>
+                       <div className="w-24 h-24 bg-gray-50 rounded-[35px] flex items-center justify-center text-5xl group-hover:bg-[#00311e] group-hover:text-white transition-all shadow-inner transform -rotate-3 group-hover:rotate-0">
+                          {c.icon}
+                       </div>
+                       <div className="flex-1 text-center md:text-left min-w-0">
+                          <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
+                             <span className="text-[8px] font-black text-white bg-[#00311e] px-4 py-1 rounded-full uppercase tracking-widest">{c.level}</span>
+                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{c.month} • {c.duration}</span>
+                          </div>
+                          <h4 className="font-black text-[#00311e] text-2xl tracking-tighter leading-none truncate group-hover:italic transition-all">{c.title}</h4>
+                          <p className="text-xs text-gray-400 mt-2 font-bold line-clamp-1">{c.description}</p>
+                       </div>
+                       <div className="flex gap-3">
+                         <button 
+                            onClick={() => confirm('Hapus materi?') && deleteCourse(c.id)}
+                            className="w-16 h-16 flex items-center justify-center bg-red-50 text-red-500 rounded-[28px] hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
+                            title="Hapus Materi"
+                         >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                         </button>
+                       </div>
+                    </div>
+                  )) : (
+                    <div className="py-32 text-center bg-white rounded-[60px] border-4 border-dashed border-gray-100 opacity-20 italic font-black text-3xl">
+                       Empty Library
+                    </div>
+                  )}
+                </div>
              </div>
           </div>
         )}
       </main>
+      
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #00311e11;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #00311e33;
+        }
+      `}</style>
     </div>
   );
 };
