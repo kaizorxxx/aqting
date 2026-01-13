@@ -23,7 +23,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   
   // Forms state
   const [newCourse, setNewCourse] = useState<Omit<Course, 'id'>>({
-    title: '', description: '', videoUrl: '', duration: '', level: 'Pemula', icon: '🎬', month: '', uploadTime: ''
+    title: '', description: '', videoUrl: '', duration: '', level: 'Canva', icon: '🎨', month: '', uploadTime: ''
   });
   const [newBanner, setNewBanner] = useState<Omit<BannerSlide, 'id'>>({
     title: '', subtitle: '', imageUrl: '', buttonLink: ''
@@ -34,13 +34,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   useEffect(() => {
     const unsubC = subscribeToCourses(setCourses);
-    const unsubS = subscribeToSettings(setSettings);
+    const unsubS = subscribeToSettings((data) => {
+      setSettings(data);
+      // Sync popupEdit state only once or when data is updated from server
+      if (data && data.popup) {
+        setPopupEdit(data.popup);
+      }
+    });
     return () => { unsubC(); unsubS(); };
   }, []);
-
-  useEffect(() => {
-    if (settings) setPopupEdit(settings.popup);
-  }, [settings]);
 
   const handleSavePopup = async () => {
     setIsSubmitting(true);
@@ -48,7 +50,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       await updatePopupSettings(popupEdit);
       alert('Pengaturan Popup berhasil diperbarui! 📢');
     } catch (e) {
-      alert('Gagal memperbarui popup.');
+      console.error(e);
+      alert('Gagal memperbarui popup. Pastikan koneksi stabil.');
     } finally {
       setIsSubmitting(false);
     }
@@ -65,6 +68,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       setNewBanner({ title: '', subtitle: '', imageUrl: '', buttonLink: '' });
       alert('Banner baru berhasil ditambahkan! 🖼️');
     } catch (e) {
+      console.error(e);
       alert('Gagal menambah banner.');
     } finally {
       setIsSubmitting(false);
@@ -79,9 +83,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setIsSubmitting(true);
     try {
       await addCourse({ ...newCourse, uploadTime: new Date().toLocaleString('id-ID') });
-      setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Pemula', icon: '🎬', month: '', uploadTime: '' });
+      setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Canva', icon: '🎨', month: '', uploadTime: '' });
       alert('Materi berhasil diupload! 🎞️');
     } catch (e) {
+      console.error(e);
       alert('Gagal upload materi.');
     } finally {
       setIsSubmitting(false);
@@ -170,7 +175,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-6">Urutan Slide Saat Ini</h4>
                   {settings?.banners && Object.keys(settings.banners).length > 0 ? (
-                    /* Added type assertion [string, BannerSlide][] to Object.entries to resolve 'unknown' type error */
                     (Object.entries(settings.banners) as [string, BannerSlide][]).map(([id, b]) => (
                       <div key={id} className="flex items-center gap-6 p-5 bg-white rounded-[32px] border border-gray-100 shadow-sm group hover:border-blue-200 transition-all">
                          <img src={b.imageUrl} className="w-20 h-20 rounded-2xl object-cover shadow-inner" alt="Banner" />
@@ -222,15 +226,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {isSubmitting ? 'Menyimpan...' : 'Update Popup Aktif ✅'}
                   </button>
                </div>
-               
-               <div className="mt-12 p-8 bg-orange-50 rounded-[40px] border border-orange-100">
-                  <h4 className="text-xs font-black text-orange-800 uppercase tracking-widest mb-4">💡 Tips Kelola Popup</h4>
-                  <ul className="text-sm text-orange-900/60 font-bold space-y-2">
-                    <li>• Gunakan emoji besar jika tidak ingin pakai URL gambar.</li>
-                    <li>• Link bisa mengarah ke WhatsApp atau Form pendaftaran.</li>
-                    <li>• Nonaktifkan (toggle off) jika tidak ada event mendesak.</li>
-                  </ul>
-               </div>
             </section>
           </div>
         )}
@@ -248,9 +243,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                    <div className="grid grid-cols-2 gap-4">
                      <input placeholder="Durasi (Contoh: 15:40)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={newCourse.duration} onChange={e => setNewCourse({...newCourse, duration: e.target.value})} />
                      <select className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-black text-[#00311e]" value={newCourse.level} onChange={e => setNewCourse({...newCourse, level: e.target.value as any})}>
-                        <option>Pemula</option>
-                        <option>Menengah</option>
-                        <option>Lanjutan</option>
+                        <option>Canva</option>
+                        <option>CapCut</option>
+                        <option>Pixellab</option>
                         <option>Spring</option>
                      </select>
                    </div>
@@ -308,22 +303,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           </div>
         )}
       </main>
-      
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #00311e11;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #00311e33;
-        }
-      `}</style>
     </div>
   );
 };

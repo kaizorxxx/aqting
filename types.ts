@@ -5,7 +5,7 @@ export interface Course {
   description: string;
   videoUrl: string;
   duration: string;
-  level: 'Spring' | 'Pemula' | 'Menengah' | 'Lanjutan';
+  level: 'Spring' | 'Canva' | 'CapCut' | 'Pixellab';
   icon: string;
   month: string;
   uploadTime: string;
