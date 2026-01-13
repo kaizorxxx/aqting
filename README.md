@@ -1,27 +1,20 @@
-[<div align="center">
-  <img src="https://api.deline.web.id/dXdcP13M9P.png" width="180" alt="Aqting Logo" />
-  <h1>Aqting: Master the Art of Mobile & Desktop Editing</h1>
-  <p>Platform Materi Editing Terlengkap untuk Semua Software </p>
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
----
+# Run and deploy your AI Studio app
 
-## 🎬 Tentang Aqting
-**Aqting** adalah platform edukasi yang berfokus pada pemberdayaan siswa melalui penguasaan software editing yang populer dan aksesibel. Kami menyediakan materi terstruktur untuk membantu siswa menghasilkan karya berkualitas profesional hanya dengan perangkat harian siswa.
+This contains everything you need to run your app locally.
 
-### Software yang Diajarkan:
-* **Canva** (Graphic Design & Branding)
-* **CapCut** (Video Editing PC & Mobile)
-* **VN Video Editor** (Precision Mobile Editing)
-* **Pixellab** (Advanced Mobile Typography & Design)
+View your app in AI Studio: https://ai.studio/apps/drive/18tcNmIEOQ3vtdqv9AZDNeld5L2PqpYRm
 
----
+## Run Locally
 
-## 🚀 Langkah-Langkah Menjalankan Proyek Lokal
+**Prerequisites:**  Node.js
 
-Ikuti panduan lengkap ini untuk menjalankan dashboard website Aqting di perangkat Anda:
 
-1. **Prasyarat:** Pastikan **Node.js** sudah terinstal di komputer Anda.
-2. **Instalasi:** Buka terminal di folder proyek, lalu jalankan perintah:
-   ```bash
-   npm install
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

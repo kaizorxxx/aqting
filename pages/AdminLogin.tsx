@@ -18,6 +18,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   /** 
    * INFO KREDENSIAL:
    * Username dan Password disimpan secara hardcoded di bawah ini.
+   * Username: admin_aqting
+   * Password: [Long Token Below]
    */
   const ADMIN_USER = 'admin_aqting';
   const ADMIN_PASSWORD = 'h9Q3kax1SI7WCscwF6ELAXfG8vJMTOju0HgVNPr4KdiBU5lm2RDntpeobqGRFJEJ2SPv1DTwj3oPnkBfQDL57rRq77uNxMQinjla';

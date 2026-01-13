@@ -255,25 +255,25 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Video - Floating Design */}
+      {/* Modal Video - New Floating Design with backdrop blur */}
       {selectedCourse && (
         <div 
-          className="fixed inset-0 z-[200] bg-zinc-900/40 backdrop-blur-2xl flex items-center justify-center p-4 md:p-12 overflow-y-auto animate-in fade-in duration-500"
+          className="fixed inset-0 z-[200] bg-zinc-900/40 backdrop-blur-3xl flex items-center justify-center p-4 md:p-12 overflow-y-auto animate-in fade-in duration-500"
           onClick={() => setSelectedCourse(null)}
         >
           <div 
-            className="bg-white w-full max-w-6xl md:rounded-[50px] rounded-3xl overflow-hidden relative shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] h-fit flex flex-col transform transition-all animate-in zoom-in duration-500 border border-white/20"
+            className="bg-white w-full max-w-6xl md:rounded-[50px] rounded-3xl overflow-hidden relative shadow-[0_60px_100px_-20px_rgba(0,0,0,0.6)] h-fit flex flex-col transform transition-all animate-in zoom-in duration-500 border border-white/20"
             onClick={(e) => e.stopPropagation()}
           >
             <button 
               onClick={() => setSelectedCourse(null)}
-              className="absolute top-6 right-6 z-20 bg-black/40 backdrop-blur-md text-white w-10 h-10 md:w-14 md:h-14 rounded-full hover:bg-black/60 transition-all flex items-center justify-center text-xl md:text-2xl shadow-xl hover:scale-110"
+              className="absolute top-4 right-4 md:top-8 md:right-8 z-20 bg-black/40 backdrop-blur-md text-white w-10 h-10 md:w-14 md:h-14 rounded-full hover:bg-black/60 transition-all flex items-center justify-center text-xl md:text-2xl shadow-xl hover:scale-110"
             >
               ✕
             </button>
             
             <div className="flex flex-col md:flex-row">
-              {/* Left Column: Content */}
+              {/* Left Content Area */}
               <div className="w-full md:w-[70%] bg-white flex flex-col">
                 <div className="relative pt-[56.25%] w-full bg-black">
                   {selectedCourse.videoUrl.includes('mp4') || selectedCourse.videoUrl.includes('catbox') ? (
@@ -296,7 +296,7 @@ const Home: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right Column: Chat/Comments */}
+              {/* Right Sidebar - Comments Area */}
               <div className="w-full md:w-[30%] bg-[#fafafa] flex flex-col border-l border-gray-100/50 backdrop-blur-md">
                  <div className="p-8 border-b border-gray-100 bg-white/40">
                    <h3 className="text-2xl font-black text-[#00311e] flex items-center gap-4 italic tracking-tighter">
@@ -304,7 +304,7 @@ const Home: React.FC = () => {
                    </h3>
                  </div>
                  
-                 <div className="flex-1 overflow-y-auto p-6 space-y-6 max-h-[400px] md:max-h-none custom-scrollbar">
+                 <div className="flex-1 overflow-y-auto p-6 space-y-6 max-h-[400px] md:max-h-none custom-scrollbar bg-white/30">
                     {comments.map(c => (
                       <div key={c.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col transform transition-all hover:translate-x-1">
                         <div className="flex justify-between items-center mb-2">
@@ -315,18 +315,18 @@ const Home: React.FC = () => {
                       </div>
                     ))}
                     {comments.length === 0 && (
-                      <div className="text-center py-10 opacity-20 italic font-bold text-sm">Jadilah yang pertama berkomentar!</div>
+                      <div className="text-center py-10 opacity-20 italic font-bold text-sm">Belum ada komentar.</div>
                     )}
                  </div>
 
-                 <div className="p-8 bg-white border-t border-gray-100">
+                 <div className="p-8 bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.02)]">
                     <div className="space-y-4">
                       <div className="relative">
                         <input 
                           placeholder="Nama Anda"
                           value={commentName}
                           onChange={e => setCommentName(e.target.value)}
-                          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-black focus:ring-4 focus:ring-[#00311e]/10 focus:border-[#00311e]/30 outline-none transition-all placeholder:text-gray-300 shadow-inner"
+                          className="w-full p-4 md:p-5 bg-gray-50 border-2 border-gray-200 rounded-2xl text-sm font-black focus:ring-4 focus:ring-[#00311e]/10 focus:border-[#00311e]/40 focus:bg-white outline-none transition-all placeholder:text-gray-300 shadow-inner"
                         />
                       </div>
                       <div className="relative">
@@ -334,12 +334,12 @@ const Home: React.FC = () => {
                           placeholder="Tulis komentar..."
                           value={commentText}
                           onChange={e => setCommentText(e.target.value)}
-                          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold h-32 resize-none focus:ring-4 focus:ring-[#00311e]/10 focus:border-[#00311e]/30 outline-none transition-all placeholder:text-gray-300 shadow-inner"
+                          className="w-full p-4 md:p-5 bg-gray-50 border-2 border-gray-200 rounded-2xl text-sm font-bold h-32 resize-none focus:ring-4 focus:ring-[#00311e]/10 focus:border-[#00311e]/40 focus:bg-white outline-none transition-all placeholder:text-gray-300 shadow-inner"
                         />
                       </div>
                       <button 
                         onClick={handlePostComment}
-                        className="w-full bg-[#00311e] text-white py-5 rounded-[24px] font-black text-lg hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                        className="w-full bg-[#00311e] text-white py-4 md:py-5 rounded-[24px] font-black text-lg hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
                       >
                         Kirim Komentar 🚀
                       </button>
