@@ -1,6 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, remove, push, update } from 'firebase/database';
+import { getAuth, signInAnonymously } from 'firebase/auth'; // Import Auth Module
 import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../types';
 
 const firebaseConfig = {
@@ -15,6 +16,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
+
+// Authenticate anonymously to satisfy Firebase Database Rules (usually "auth != null")
+// PENTING: Pastikan "Anonymous" Sign-in provider diaktifkan di Firebase Console -> Authentication -> Sign-in method
+signInAnonymously(auth).then(() => {
+    console.log("System: Connected to Database (Anonymous Auth)");
+}).catch((error) => {
+    console.error("Database Connection Error:", error);
+});
 
 // Courses
 export const subscribeToCourses = (callback: (courses: Course[]) => void) => {
