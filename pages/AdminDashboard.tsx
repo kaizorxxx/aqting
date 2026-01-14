@@ -8,6 +8,7 @@ import {
   addBanner, 
   deleteBanner,
   addCourse,
+  updateCourse,
   deleteCourse
 } from '../services/firebaseService';
 
@@ -20,6 +21,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   
   // Forms state
   const [newCourse, setNewCourse] = useState<Omit<Course, 'id'>>({
@@ -36,7 +38,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const unsubC = subscribeToCourses(setCourses);
     const unsubS = subscribeToSettings((data) => {
       setSettings(data);
-      // Sync popupEdit state only once or when data is updated from server
+      // Fix Popup: Pastikan state form popup terisi data dari database saat load
       if (data && data.popup) {
         setPopupEdit(data.popup);
       }
@@ -75,22 +77,52 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     }
   };
 
-  const handleAddCourse = async () => {
+  const handleCourseSubmit = async () => {
     if (!newCourse.title || !newCourse.videoUrl) {
       alert('Judul dan URL Video wajib diisi.');
       return;
     }
     setIsSubmitting(true);
     try {
-      await addCourse({ ...newCourse, uploadTime: new Date().toLocaleString('id-ID') });
+      if (editingCourseId) {
+        // Mode Update
+        await updateCourse(editingCourseId, newCourse);
+        alert('Materi berhasil diperbarui! ✨');
+      } else {
+        // Mode Create
+        await addCourse({ ...newCourse, uploadTime: new Date().toLocaleString('id-ID') });
+        alert('Materi berhasil diupload! 🚀');
+      }
+      // Reset form
       setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Canva', icon: '🎨', month: '', uploadTime: '' });
-      alert('Materi berhasil diupload! 🎞️');
+      setEditingCourseId(null);
     } catch (e) {
       console.error(e);
-      alert('Gagal upload materi.');
+      alert('Gagal menyimpan materi.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditCourse = (course: Course) => {
+    setNewCourse({
+      title: course.title,
+      description: course.description,
+      videoUrl: course.videoUrl,
+      duration: course.duration,
+      level: course.level,
+      icon: course.icon,
+      month: course.month,
+      uploadTime: course.uploadTime
+    });
+    setEditingCourseId(course.id);
+    // Scroll ke atas agar form terlihat di mobile
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Canva', icon: '🎨', month: '', uploadTime: '' });
+    setEditingCourseId(null);
   };
 
   return (
@@ -223,7 +255,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     onClick={handleSavePopup} 
                     className="w-full bg-[#00311e] text-white py-6 rounded-[32px] font-black text-xl hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/20 transition-all active:scale-95 disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Menyimpan...' : 'Update Popup Aktif ✅'}
+                    {isSubmitting ? 'Menyimpan...' : 'Simpan Pengaturan ✅'}
                   </button>
                </div>
             </section>
@@ -234,7 +266,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 animate-in fade-in duration-500">
              <div className="bg-white p-10 rounded-[48px] shadow-2xl border border-gray-100 h-fit sticky top-8">
                 <h3 className="text-2xl font-black text-[#00311e] mb-10 flex items-center gap-4">
-                  <span className="bg-green-100 w-12 h-12 rounded-2xl flex items-center justify-center text-xl">🎞️</span> Rilis Materi
+                  <span className="bg-green-100 w-12 h-12 rounded-2xl flex items-center justify-center text-xl">{editingCourseId ? '✏️' : '🎞️'}</span> 
+                  {editingCourseId ? 'Edit Materi' : 'Rilis Materi'}
                 </h3>
                 <div className="space-y-4">
                    <input placeholder="Judul Materi" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-black text-[#00311e]" value={newCourse.title} onChange={e => setNewCourse({...newCourse, title: e.target.value})} />
@@ -243,10 +276,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                    <div className="grid grid-cols-2 gap-4">
                      <input placeholder="Durasi (Contoh: 15:40)" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-bold" value={newCourse.duration} onChange={e => setNewCourse({...newCourse, duration: e.target.value})} />
                      <select className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl font-black text-[#00311e]" value={newCourse.level} onChange={e => setNewCourse({...newCourse, level: e.target.value as any})}>
-                        <option>Canva</option>
-                        <option>CapCut</option>
-                        <option>Pixellab</option>
-                        <option>Spring</option>
+                        <option value="Canva">Canva</option>
+                        <option value="CapCut">CapCut</option>
+                        <option value="Pixellab">Pixellab</option>
+                        <option value="Spring">Spring</option>
                      </select>
                    </div>
                    <div className="grid grid-cols-2 gap-4">
@@ -255,11 +288,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                    </div>
                    <button 
                      disabled={isSubmitting}
-                     onClick={handleAddCourse} 
-                     className="w-full bg-[#00311e] text-white py-6 rounded-[32px] font-black text-xl hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/30 mt-6 transition-all"
+                     onClick={handleCourseSubmit} 
+                     className="w-full bg-[#00311e] text-white py-6 rounded-[32px] font-black text-xl hover:bg-[#005a36] shadow-2xl shadow-[#00311e]/30 mt-6 transition-all active:scale-95"
                    >
-                     {isSubmitting ? 'Sedang Upload...' : 'Publikasi Materi 🚀'}
+                     {isSubmitting ? 'Memproses...' : (editingCourseId ? 'Simpan Perubahan ✅' : 'Publikasi Materi 🚀')}
                    </button>
+                   {editingCourseId && (
+                     <button 
+                       onClick={cancelEdit}
+                       className="w-full bg-gray-100 text-gray-500 py-4 rounded-[32px] font-bold text-sm mt-2 transition-all hover:bg-gray-200"
+                     >
+                       Batal Edit
+                     </button>
+                   )}
                 </div>
              </div>
 
@@ -284,6 +325,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                           <p className="text-xs text-gray-400 mt-2 font-bold line-clamp-1">{c.description}</p>
                        </div>
                        <div className="flex gap-3">
+                         {/* Tombol Edit Baru */}
+                         <button 
+                            onClick={() => handleEditCourse(c)}
+                            className="w-16 h-16 flex items-center justify-center bg-blue-50 text-blue-600 rounded-[28px] hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-90"
+                            title="Edit Materi"
+                         >
+                            <span className="text-2xl">✏️</span>
+                         </button>
+                         {/* Tombol Hapus */}
                          <button 
                             onClick={() => confirm('Hapus materi?') && deleteCourse(c.id)}
                             className="w-16 h-16 flex items-center justify-center bg-red-50 text-red-500 rounded-[28px] hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"

@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, remove, push, get } from 'firebase/database';
+import { getDatabase, ref, onValue, set, remove, push, update } from 'firebase/database';
 import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../types';
 
 const firebaseConfig = {
@@ -37,6 +37,11 @@ export const addCourse = async (course: Omit<Course, 'id'>) => {
   const coursesRef = ref(db, 'courses');
   const newRef = push(coursesRef);
   await set(newRef, course);
+};
+
+export const updateCourse = async (courseId: string, courseData: Omit<Course, 'id'>) => {
+  const courseRef = ref(db, `courses/${courseId}`);
+  await update(courseRef, courseData);
 };
 
 export const deleteCourse = async (courseId: string) => {
@@ -91,7 +96,15 @@ export const subscribeToSettings = (callback: (settings: AppSettings) => void) =
 };
 
 export const updatePopupSettings = async (settings: PopupSettings) => {
-  await set(ref(db, 'settings/popup'), settings);
+  const popupRef = ref(db, 'settings/popup');
+  // Memastikan objek terdefinisi sebelum dikirim
+  const payload = {
+    enabled: settings.enabled ?? false,
+    image: settings.image || '🎥',
+    text: settings.text || '',
+    link: settings.link || '#'
+  };
+  await set(popupRef, payload);
 };
 
 export const addBanner = async (banner: Omit<BannerSlide, 'id'>) => {
