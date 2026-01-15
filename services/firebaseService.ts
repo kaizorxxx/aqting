@@ -1,7 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, remove, push, update } from 'firebase/database';
-import { getAuth, signInAnonymously } from 'firebase/auth'; // Import Auth Module
+import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth'; 
 import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../types';
 
 const firebaseConfig = {
@@ -16,18 +16,37 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const auth = getAuth(app);
+export const auth = getAuth(app);
 
-// Authenticate anonymously to satisfy Firebase Database Rules (usually "auth != null")
-// PENTING: Pastikan "Anonymous" Sign-in provider diaktifkan di Firebase Console -> Authentication -> Sign-in method
-signInAnonymously(auth).then(() => {
-    console.log("System: Connected to Database (Anonymous Auth)");
-}).catch((error) => {
-    console.error("Database Connection Error:", error);
+// Helper untuk memastikan Auth siap sebelum melakukan write database
+export const ensureAuthConnection = async (): Promise<User> => {
+    return new Promise((resolve, reject) => {
+        // Cek jika sudah login
+        if (auth.currentUser) {
+            resolve(auth.currentUser);
+            return;
+        }
+
+        // Jika belum, coba login anonim
+        signInAnonymously(auth)
+            .then((result) => {
+                console.log("Firebase: Connected as Anonymous User", result.user.uid);
+                resolve(result.user);
+            })
+            .catch((error) => {
+                console.error("Firebase Auth Error:", error);
+                reject(error);
+            });
+    });
+};
+
+// Auto-connect saat aplikasi dimuat
+signInAnonymously(auth).catch((err) => {
+    console.warn("Auto-login deferred. This is normal if Anonymous Auth is disabled.", err.code);
 });
 
-// Courses
-export const subscribeToCourses = (callback: (courses: Course[]) => void) => {
+// --- Courses ---
+export const subscribeToCourses = (callback: (courses: Course[]) => void, onError?: (error: Error) => void) => {
   const coursesRef = ref(db, 'courses');
   return onValue(coursesRef, (snapshot) => {
     const data = snapshot.val();
@@ -40,26 +59,31 @@ export const subscribeToCourses = (callback: (courses: Course[]) => void) => {
     } else {
       callback([]);
     }
+  }, (error) => {
+    if (onError) onError(error);
   });
 };
 
 export const addCourse = async (course: Omit<Course, 'id'>) => {
+  await ensureAuthConnection(); // Pastikan auth sebelum write
   const coursesRef = ref(db, 'courses');
   const newRef = push(coursesRef);
   await set(newRef, course);
 };
 
 export const updateCourse = async (courseId: string, courseData: Omit<Course, 'id'>) => {
+  await ensureAuthConnection();
   const courseRef = ref(db, `courses/${courseId}`);
   await update(courseRef, courseData);
 };
 
 export const deleteCourse = async (courseId: string) => {
+  await ensureAuthConnection();
   await remove(ref(db, `courses/${courseId}`));
   await remove(ref(db, `comments/${courseId}`));
 };
 
-// Comments
+// --- Comments ---
 export const subscribeToComments = (courseId: string, callback: (comments: Comment[]) => void) => {
   const commentsRef = ref(db, `comments/${courseId}`);
   return onValue(commentsRef, (snapshot) => {
@@ -73,21 +97,26 @@ export const subscribeToComments = (courseId: string, callback: (comments: Comme
     } else {
       callback([]);
     }
+  }, (error) => {
+    console.error("Error reading comments:", error);
   });
 };
 
 export const addComment = async (courseId: string, comment: Omit<Comment, 'id'>) => {
+  // Komentar mungkin bisa dari guest tanpa auth, tapi sebaiknya tetap auth
+  await ensureAuthConnection().catch(e => console.warn("Posting comment as guest (auth failed)", e));
   const commentsRef = ref(db, `comments/${courseId}`);
   const newRef = push(commentsRef);
   await set(newRef, comment);
 };
 
 export const deleteComment = async (courseId: string, commentId: string) => {
+  await ensureAuthConnection();
   await remove(ref(db, `comments/${courseId}/${commentId}`));
 };
 
-// Settings (Banners & Popups)
-export const subscribeToSettings = (callback: (settings: AppSettings) => void) => {
+// --- Settings (Banners & Popups) ---
+export const subscribeToSettings = (callback: (settings: AppSettings) => void, onError?: (error: Error) => void) => {
   const settingsRef = ref(db, 'settings');
   return onValue(settingsRef, (snapshot) => {
     const data = snapshot.val();
@@ -102,12 +131,14 @@ export const subscribeToSettings = (callback: (settings: AppSettings) => void) =
         banners: {}
       });
     }
+  }, (error) => {
+    if (onError) onError(error);
   });
 };
 
 export const updatePopupSettings = async (settings: PopupSettings) => {
+  await ensureAuthConnection();
   const popupRef = ref(db, 'settings/popup');
-  // Memastikan objek terdefinisi sebelum dikirim
   const payload = {
     enabled: settings.enabled ?? false,
     image: settings.image || '🎥',
@@ -118,11 +149,13 @@ export const updatePopupSettings = async (settings: PopupSettings) => {
 };
 
 export const addBanner = async (banner: Omit<BannerSlide, 'id'>) => {
+  await ensureAuthConnection();
   const bannerRef = ref(db, 'settings/banners');
   const newRef = push(bannerRef);
   await set(newRef, { ...banner, id: newRef.key });
 };
 
 export const deleteBanner = async (bannerId: string) => {
+  await ensureAuthConnection();
   await remove(ref(db, `settings/banners/${bannerId}`));
 };

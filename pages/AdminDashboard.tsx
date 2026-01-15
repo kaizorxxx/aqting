@@ -9,7 +9,8 @@ import {
   deleteBanner,
   addCourse,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  ensureAuthConnection
 } from '../services/firebaseService';
 
 interface AdminDashboardProps {
@@ -22,6 +23,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   
   // Forms state
   const [newCourse, setNewCourse] = useState<Omit<Course, 'id'>>({
@@ -35,14 +37,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   });
 
   useEffect(() => {
-    const unsubC = subscribeToCourses(setCourses);
+    // Coba koneksi auth saat mount untuk memastikan user terhubung ke database
+    ensureAuthConnection().catch((err) => {
+       if (err.code === 'auth/configuration-not-found' || err.code === 'auth/admin-restricted-operation') {
+           setAuthError('SETUP_REQUIRED');
+       }
+    });
+
+    const handleDataError = (err: Error) => {
+        // Jika permission denied, biasanya karena auth gagal atau rules ketat
+        if (err.message.toLowerCase().includes('permission_denied')) {
+            setAuthError('PERMISSION_DENIED');
+        }
+    };
+
+    const unsubC = subscribeToCourses(setCourses, handleDataError);
     const unsubS = subscribeToSettings((data) => {
       setSettings(data);
-      // Fix Popup: Pastikan state form popup terisi data dari database saat load
       if (data && data.popup) {
         setPopupEdit(data.popup);
       }
-    });
+    }, handleDataError);
+
     return () => { unsubC(); unsubS(); };
   }, []);
 
@@ -51,9 +67,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     try {
       await updatePopupSettings(popupEdit);
       alert('Pengaturan Popup berhasil diperbarui! 📢');
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('Gagal memperbarui popup. Pastikan koneksi stabil.');
+      if (e.code === 'auth/configuration-not-found') setAuthError('SETUP_REQUIRED');
+      else alert('Gagal memperbarui popup. Pastikan koneksi stabil.');
     } finally {
       setIsSubmitting(false);
     }
@@ -69,9 +86,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       await addBanner(newBanner);
       setNewBanner({ title: '', subtitle: '', imageUrl: '', buttonLink: '' });
       alert('Banner baru berhasil ditambahkan! 🖼️');
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('Gagal menambah banner.');
+      if (e.code === 'auth/configuration-not-found') setAuthError('SETUP_REQUIRED');
+      else alert('Gagal menambah banner.');
     } finally {
       setIsSubmitting(false);
     }
@@ -85,20 +103,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setIsSubmitting(true);
     try {
       if (editingCourseId) {
-        // Mode Update
         await updateCourse(editingCourseId, newCourse);
         alert('Materi berhasil diperbarui! ✨');
       } else {
-        // Mode Create
         await addCourse({ ...newCourse, uploadTime: new Date().toLocaleString('id-ID') });
         alert('Materi berhasil diupload! 🚀');
       }
-      // Reset form
       setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Canva', icon: '🎨', month: '', uploadTime: '' });
       setEditingCourseId(null);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('Gagal menyimpan materi.');
+      if (e.code === 'auth/configuration-not-found') setAuthError('SETUP_REQUIRED');
+      else alert('Gagal menyimpan materi.');
     } finally {
       setIsSubmitting(false);
     }
@@ -116,7 +132,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       uploadTime: course.uploadTime
     });
     setEditingCourseId(course.id);
-    // Scroll ke atas agar form terlihat di mobile
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -124,6 +139,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setNewCourse({ title: '', description: '', videoUrl: '', duration: '', level: 'Canva', icon: '🎨', month: '', uploadTime: '' });
     setEditingCourseId(null);
   };
+
+  // Tampilan Error Auth (Full Screen)
+  if (authError === 'SETUP_REQUIRED' || authError === 'PERMISSION_DENIED') {
+      return (
+          <div className="min-h-screen bg-red-50 flex items-center justify-center p-8">
+              <div className="bg-white max-w-2xl w-full p-10 rounded-[40px] shadow-2xl text-center border-2 border-red-100">
+                  <div className="text-6xl mb-6">⚠️</div>
+                  <h2 className="text-3xl font-black text-red-600 mb-4">Sistem Terkunci: Konfigurasi Diperlukan</h2>
+                  <p className="text-gray-600 mb-8 font-medium leading-relaxed">
+                     Fitur edit dan upload dinonaktifkan oleh Firebase karena pengaturan keamanan. 
+                     Anda harus mengaktifkan <span className="font-bold text-black bg-yellow-200 px-2 rounded">Anonymous Auth</span> di Firebase Console.
+                  </p>
+                  
+                  <div className="bg-gray-50 text-left p-6 rounded-2xl mb-8 border border-gray-200 text-sm">
+                      <p className="font-bold mb-2 text-[#00311e]">Langkah Perbaikan:</p>
+                      <ol className="list-decimal pl-5 space-y-2 text-gray-600">
+                          <li>Buka <a href="https://console.firebase.google.com/" target="_blank" className="text-blue-600 underline font-bold">Firebase Console</a></li>
+                          <li>Masuk ke menu <strong>Build &gt; Authentication</strong>.</li>
+                          <li>Pilih tab <strong>Sign-in method</strong>.</li>
+                          <li>Klik pada provider <strong>Anonymous (Anonim)</strong>.</li>
+                          <li>Aktifkan toogle <strong>Enable</strong> lalu klik <strong>Save</strong>.</li>
+                          <li>Refresh halaman ini.</li>
+                      </ol>
+                  </div>
+
+                  <button onClick={() => window.location.reload()} className="bg-red-600 text-white px-8 py-4 rounded-full font-black hover:bg-red-700 transition-all shadow-lg">
+                      Saya Sudah Mengaktifkannya, Refresh! 🔄
+                  </button>
+                  <button onClick={onLogout} className="block w-full mt-4 text-gray-400 font-bold hover:text-red-500 text-sm">
+                      Logout
+                  </button>
+              </div>
+          </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col md:flex-row">

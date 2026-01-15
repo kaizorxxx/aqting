@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ensureAuthConnection } from '../services/firebaseService';
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -15,31 +16,40 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
   const LOGO_URL = "https://api.deline.web.id/sIzpbEAP1y.png";
   
-  /** 
-   * INFO KREDENSIAL:
-   * Username dan Password disimpan secara hardcoded di bawah ini.
-   * Username: admin_aqting
-   * Password: [Long Token Below]
-   */
   const ADMIN_USER = 'admin_aqting';
   const ADMIN_PASSWORD = 'h9Q3kax1SI7WCscwF6ELAXfG8vJMTOju0HgVNPr4KdiBU5lm2RDntpeobqGRFJEJ2SPv1DTwj3oPnkBfQDL57rRq77uNxMQinjla';
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
-    // Simulasi delay autentikasi
-    setTimeout(() => {
-      if (username === ADMIN_USER && password === ADMIN_PASSWORD) {
+    // 1. Validasi Hardcoded Credential (Gatekeeper)
+    if (username !== ADMIN_USER || password !== ADMIN_PASSWORD) {
+        // Simulasi delay biar terkesan secure
+        setTimeout(() => {
+            setError('Kredensial admin tidak valid. Periksa username atau password.');
+            setPassword('');
+            setLoading(false);
+        }, 800);
+        return;
+    }
+
+    // 2. Jika password benar, coba konek ke Firebase Auth
+    try {
+        await ensureAuthConnection();
+        // Jika berhasil konek dan password benar:
         onLogin();
         navigate('/dashboard');
-      } else {
-        setError('Kredensial admin tidak valid. Periksa username atau password.');
-        setPassword('');
-      }
-      setLoading(false);
-    }, 800);
+    } catch (firebaseErr: any) {
+        console.error("Firebase Auth Failed:", firebaseErr);
+        if (firebaseErr.code === 'auth/configuration-not-found' || firebaseErr.code === 'auth/admin-restricted-operation') {
+            setError('PENTING: Fitur "Anonymous Auth" belum aktif di Firebase Console! Harap aktifkan di menu Authentication > Sign-in method.');
+        } else {
+            setError(`Gagal koneksi database: ${firebaseErr.message}`);
+        }
+        setLoading(false);
+    }
   };
 
   return (
@@ -90,7 +100,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
             disabled={loading}
             className="w-full bg-[#00311e] text-white py-6 rounded-[28px] font-black text-xl hover:bg-[#005a36] transition-all shadow-[0_20px_40px_rgba(0,49,30,0.3)] hover:scale-[1.02] active:scale-95 disabled:opacity-50 mt-4"
           >
-            {loading ? 'Authenticating...' : 'Enter Dashboard ⚡'}
+            {loading ? 'Verifying & Connecting...' : 'Enter Dashboard ⚡'}
           </button>
         </form>
 
