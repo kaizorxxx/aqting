@@ -37,17 +37,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   });
 
   useEffect(() => {
-    // Coba koneksi auth saat mount untuk memastikan user terhubung ke database
-    ensureAuthConnection().catch((err) => {
-       if (err.code === 'auth/configuration-not-found' || err.code === 'auth/admin-restricted-operation') {
-           setAuthError('SETUP_REQUIRED');
-       }
-    });
+    // Jalankan auth check di background tanpa memblokir
+    ensureAuthConnection();
 
     const handleDataError = (err: Error) => {
-        // Jika permission denied, biasanya karena auth gagal atau rules ketat
+        // PERMISSION_DENIED adalah indikator utama masalah, baik karena Auth mati atau Rules salah
         if (err.message.toLowerCase().includes('permission_denied')) {
             setAuthError('PERMISSION_DENIED');
+        } else if (err.message.toLowerCase().includes('client is offline')) {
+            // Abaikan offline sementara
+        } else {
+            // Error lain mungkin permission juga
+             setAuthError('PERMISSION_DENIED');
         }
     };
 
@@ -69,7 +70,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       alert('Pengaturan Popup berhasil diperbarui! 📢');
     } catch (e: any) {
       console.error(e);
-      if (e.code === 'auth/configuration-not-found') setAuthError('SETUP_REQUIRED');
+      if (e.message.toLowerCase().includes('permission_denied')) setAuthError('PERMISSION_DENIED');
       else alert('Gagal memperbarui popup. Pastikan koneksi stabil.');
     } finally {
       setIsSubmitting(false);
@@ -88,7 +89,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       alert('Banner baru berhasil ditambahkan! 🖼️');
     } catch (e: any) {
       console.error(e);
-      if (e.code === 'auth/configuration-not-found') setAuthError('SETUP_REQUIRED');
+      if (e.message.toLowerCase().includes('permission_denied')) setAuthError('PERMISSION_DENIED');
       else alert('Gagal menambah banner.');
     } finally {
       setIsSubmitting(false);
@@ -113,7 +114,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       setEditingCourseId(null);
     } catch (e: any) {
       console.error(e);
-      if (e.code === 'auth/configuration-not-found') setAuthError('SETUP_REQUIRED');
+      if (e.message.toLowerCase().includes('permission_denied')) setAuthError('PERMISSION_DENIED');
       else alert('Gagal menyimpan materi.');
     } finally {
       setIsSubmitting(false);
@@ -140,36 +141,52 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setEditingCourseId(null);
   };
 
-  // Tampilan Error Auth (Full Screen)
-  if (authError === 'SETUP_REQUIRED' || authError === 'PERMISSION_DENIED') {
+  // Tampilan Error Permission Denied (SOLUSI BARU)
+  if (authError === 'PERMISSION_DENIED') {
       return (
-          <div className="min-h-screen bg-red-50 flex items-center justify-center p-8">
-              <div className="bg-white max-w-2xl w-full p-10 rounded-[40px] shadow-2xl text-center border-2 border-red-100">
-                  <div className="text-6xl mb-6">⚠️</div>
-                  <h2 className="text-3xl font-black text-red-600 mb-4">Sistem Terkunci: Konfigurasi Diperlukan</h2>
-                  <p className="text-gray-600 mb-8 font-medium leading-relaxed">
-                     Fitur edit dan upload dinonaktifkan oleh Firebase karena pengaturan keamanan. 
-                     Anda harus mengaktifkan <span className="font-bold text-black bg-yellow-200 px-2 rounded">Anonymous Auth</span> di Firebase Console.
+          <div className="min-h-screen bg-[#fff0f0] flex items-center justify-center p-8">
+              <div className="bg-white max-w-3xl w-full p-10 rounded-[40px] shadow-2xl text-center border-4 border-red-100">
+                  <div className="text-6xl mb-6">🔒</div>
+                  <h2 className="text-3xl font-black text-red-600 mb-4">Akses Database Ditolak</h2>
+                  <p className="text-gray-600 mb-8 font-medium leading-relaxed max-w-lg mx-auto">
+                     Aplikasi tidak diizinkan membaca/menulis database. Ini biasanya terjadi karena 
+                     <strong> Auth belum aktif</strong> ATAU <strong>Rules Database terlalu ketat</strong>.
                   </p>
                   
-                  <div className="bg-gray-50 text-left p-6 rounded-2xl mb-8 border border-gray-200 text-sm">
-                      <p className="font-bold mb-2 text-[#00311e]">Langkah Perbaikan:</p>
-                      <ol className="list-decimal pl-5 space-y-2 text-gray-600">
-                          <li>Buka <a href="https://console.firebase.google.com/" target="_blank" className="text-blue-600 underline font-bold">Firebase Console</a></li>
-                          <li>Masuk ke menu <strong>Build &gt; Authentication</strong>.</li>
-                          <li>Pilih tab <strong>Sign-in method</strong>.</li>
-                          <li>Klik pada provider <strong>Anonymous (Anonim)</strong>.</li>
-                          <li>Aktifkan toogle <strong>Enable</strong> lalu klik <strong>Save</strong>.</li>
-                          <li>Refresh halaman ini.</li>
-                      </ol>
+                  <div className="grid md:grid-cols-2 gap-6 text-left">
+                      <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                          <h4 className="font-black text-[#00311e] mb-2 text-sm uppercase tracking-wider">Solusi 1 (Recommended)</h4>
+                          <p className="text-xs text-gray-500 mb-2">Aktifkan Anonymous Auth agar aman.</p>
+                          <ol className="list-decimal pl-4 space-y-1 text-xs text-gray-600 font-bold">
+                              <li>Buka Firebase Console > Authentication</li>
+                              <li>Tab <strong>Sign-in method</strong></li>
+                              <li>Aktifkan <strong>Anonymous</strong></li>
+                          </ol>
+                      </div>
+
+                      <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                          <h4 className="font-black text-blue-800 mb-2 text-sm uppercase tracking-wider">Solusi 2 (Pasti Berhasil)</h4>
+                          <p className="text-xs text-blue-600 mb-2">Buat database jadi PUBLIC (bisa diakses tanpa login).</p>
+                          <p className="text-[10px] text-gray-500 mb-2">Copy script ini ke Tab <strong>Rules</strong> di Realtime Database:</p>
+                          <pre className="bg-gray-800 text-green-400 p-3 rounded-xl text-[10px] font-mono overflow-x-auto">
+{`{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}`}
+                          </pre>
+                      </div>
                   </div>
 
-                  <button onClick={() => window.location.reload()} className="bg-red-600 text-white px-8 py-4 rounded-full font-black hover:bg-red-700 transition-all shadow-lg">
-                      Saya Sudah Mengaktifkannya, Refresh! 🔄
-                  </button>
-                  <button onClick={onLogout} className="block w-full mt-4 text-gray-400 font-bold hover:text-red-500 text-sm">
-                      Logout
-                  </button>
+                  <div className="mt-8 flex flex-col items-center gap-3">
+                    <button onClick={() => window.location.reload()} className="bg-[#00311e] text-white px-10 py-4 rounded-full font-black hover:bg-[#005a36] transition-all shadow-xl hover:scale-105">
+                        Saya Sudah Perbaiki, Refresh! 🔄
+                    </button>
+                    <button onClick={onLogout} className="text-gray-400 font-bold hover:text-red-500 text-xs uppercase tracking-widest mt-2">
+                        Logout Admin
+                    </button>
+                  </div>
               </div>
           </div>
       );

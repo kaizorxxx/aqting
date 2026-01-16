@@ -19,8 +19,10 @@ const db = getDatabase(app);
 export const auth = getAuth(app);
 
 // Helper untuk memastikan Auth siap sebelum melakukan write database
-export const ensureAuthConnection = async (): Promise<User> => {
-    return new Promise((resolve, reject) => {
+// UPDATED: Sekarang me-resolve NULL jika error, supaya flow tidak putus.
+// Ini memungkinkan akses jika Database Rules di-set ke PUBLIC.
+export const ensureAuthConnection = async (): Promise<User | null> => {
+    return new Promise((resolve) => {
         // Cek jika sudah login
         if (auth.currentUser) {
             resolve(auth.currentUser);
@@ -34,15 +36,16 @@ export const ensureAuthConnection = async (): Promise<User> => {
                 resolve(result.user);
             })
             .catch((error) => {
-                console.error("Firebase Auth Error:", error);
-                reject(error);
+                console.warn("Auth Warning: Gagal login anonim. Mencoba akses database tanpa auth (Guest Mode).", error.code);
+                // Jangan reject! Resolve null agar operasi database tetap dicoba.
+                resolve(null);
             });
     });
 };
 
 // Auto-connect saat aplikasi dimuat
 signInAnonymously(auth).catch((err) => {
-    console.warn("Auto-login deferred. This is normal if Anonymous Auth is disabled.", err.code);
+    console.warn("Auto-login deferred. Will fallback to guest mode if needed.", err.code);
 });
 
 // --- Courses ---
@@ -65,7 +68,7 @@ export const subscribeToCourses = (callback: (courses: Course[]) => void, onErro
 };
 
 export const addCourse = async (course: Omit<Course, 'id'>) => {
-  await ensureAuthConnection(); // Pastikan auth sebelum write
+  await ensureAuthConnection(); 
   const coursesRef = ref(db, 'courses');
   const newRef = push(coursesRef);
   await set(newRef, course);
@@ -103,8 +106,7 @@ export const subscribeToComments = (courseId: string, callback: (comments: Comme
 };
 
 export const addComment = async (courseId: string, comment: Omit<Comment, 'id'>) => {
-  // Komentar mungkin bisa dari guest tanpa auth, tapi sebaiknya tetap auth
-  await ensureAuthConnection().catch(e => console.warn("Posting comment as guest (auth failed)", e));
+  await ensureAuthConnection();
   const commentsRef = ref(db, `comments/${courseId}`);
   const newRef = push(commentsRef);
   await set(newRef, comment);
