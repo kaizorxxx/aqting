@@ -1,7 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, remove, push, update } from 'firebase/database';
-import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth'; 
+import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut, User } from 'firebase/auth'; 
 import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../types';
 
 const firebaseConfig = {
@@ -18,34 +18,47 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 export const auth = getAuth(app);
 
-// Helper untuk memastikan Auth siap sebelum melakukan write database
-// UPDATED: Sekarang me-resolve NULL jika error, supaya flow tidak putus.
-// Ini memungkinkan akses jika Database Rules di-set ke PUBLIC.
+// Login Admin Resmi (Email/Password)
+export const loginAdmin = async (email: string, pass: string) => {
+    return await signInWithEmailAndPassword(auth, email, pass);
+};
+
+// Logout Admin
+export const logoutAdmin = async () => {
+    await signOut(auth);
+    // Kita tidak perlu memanggil signInAnonymously manual disini, 
+    // karena saat halaman di-refresh atau komponen di-mount ulang, 
+    // logika auto-login di bawah akan berjalan.
+};
+
+// Helper untuk memastikan Auth siap
 export const ensureAuthConnection = async (): Promise<User | null> => {
     return new Promise((resolve) => {
-        // Cek jika sudah login
+        // Cek jika sudah login (baik sebagai Admin atau Anonim)
         if (auth.currentUser) {
             resolve(auth.currentUser);
             return;
         }
 
-        // Jika belum, coba login anonim
+        // Jika belum login sama sekali, login sebagai Anonim (untuk Pengunjung/Guest)
         signInAnonymously(auth)
             .then((result) => {
-                console.log("Firebase: Connected as Anonymous User", result.user.uid);
+                console.log("Firebase: Guest Connected", result.user.uid);
                 resolve(result.user);
             })
             .catch((error) => {
-                console.warn("Auth Warning: Gagal login anonim. Mencoba akses database tanpa auth (Guest Mode).", error.code);
-                // Jangan reject! Resolve null agar operasi database tetap dicoba.
+                console.warn("Guest Auth Failed (Offline/Config Error):", error.code);
                 resolve(null);
             });
     });
 };
 
-// Auto-connect saat aplikasi dimuat
-signInAnonymously(auth).catch((err) => {
-    console.warn("Auto-login deferred. Will fallback to guest mode if needed.", err.code);
+// Auto-connect guest saat aplikasi dimuat
+// Hanya jika tidak ada user yang sedang login (untuk menghindari menimpa sesi Admin)
+auth.onAuthStateChanged((user) => {
+    if (!user) {
+        signInAnonymously(auth).catch(() => {});
+    }
 });
 
 // --- Courses ---

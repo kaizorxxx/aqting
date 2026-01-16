@@ -10,7 +10,8 @@ import {
   addCourse,
   updateCourse,
   deleteCourse,
-  ensureAuthConnection
+  ensureAuthConnection,
+  logoutAdmin
 } from '../services/firebaseService';
 
 interface AdminDashboardProps {
@@ -37,17 +38,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   });
 
   useEffect(() => {
-    // Jalankan auth check di background tanpa memblokir
+    // Jalankan auth check di background
     ensureAuthConnection();
 
     const handleDataError = (err: Error) => {
-        // PERMISSION_DENIED adalah indikator utama masalah, baik karena Auth mati atau Rules salah
         if (err.message.toLowerCase().includes('permission_denied')) {
             setAuthError('PERMISSION_DENIED');
         } else if (err.message.toLowerCase().includes('client is offline')) {
             // Abaikan offline sementara
         } else {
-            // Error lain mungkin permission juga
              setAuthError('PERMISSION_DENIED');
         }
     };
@@ -62,6 +61,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
     return () => { unsubC(); unsubS(); };
   }, []);
+
+  const handleLogout = async () => {
+      await logoutAdmin();
+      onLogout();
+  };
 
   const handleSavePopup = async () => {
     setIsSubmitting(true);
@@ -141,50 +145,44 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setEditingCourseId(null);
   };
 
-  // Tampilan Error Permission Denied (SOLUSI BARU)
+  // Tampilan Error Permission Denied (SOLUSI KEAMANAN)
   if (authError === 'PERMISSION_DENIED') {
       return (
           <div className="min-h-screen bg-[#fff0f0] flex items-center justify-center p-8">
-              <div className="bg-white max-w-3xl w-full p-10 rounded-[40px] shadow-2xl text-center border-4 border-red-100">
-                  <div className="text-6xl mb-6">🔒</div>
-                  <h2 className="text-3xl font-black text-red-600 mb-4">Akses Database Ditolak</h2>
-                  <p className="text-gray-600 mb-8 font-medium leading-relaxed max-w-lg mx-auto">
-                     Aplikasi tidak diizinkan membaca/menulis database. Ini biasanya terjadi karena 
-                     <strong> Auth belum aktif</strong> ATAU <strong>Rules Database terlalu ketat</strong>.
-                  </p>
+              <div className="bg-white max-w-4xl w-full p-10 rounded-[40px] shadow-2xl border-4 border-red-100">
+                  <div className="text-center">
+                    <div className="text-6xl mb-6">🔒</div>
+                    <h2 className="text-3xl font-black text-red-600 mb-4">Database Terkunci (Permission Denied)</h2>
+                    <p className="text-gray-600 mb-8 font-medium max-w-lg mx-auto">
+                        Anda tidak memiliki izin untuk mengubah data. Ini karena Anda menggunakan aturan keamanan baru tapi belum login sebagai Admin yang valid, atau Rules belum diupdate.
+                    </p>
+                  </div>
                   
-                  <div className="grid md:grid-cols-2 gap-6 text-left">
-                      <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
-                          <h4 className="font-black text-[#00311e] mb-2 text-sm uppercase tracking-wider">Solusi 1 (Recommended)</h4>
-                          <p className="text-xs text-gray-500 mb-2">Aktifkan Anonymous Auth agar aman.</p>
-                          <ol className="list-decimal pl-4 space-y-1 text-xs text-gray-600 font-bold">
-                              <li>Buka Firebase Console > Authentication</li>
-                              <li>Tab <strong>Sign-in method</strong></li>
-                              <li>Aktifkan <strong>Anonymous</strong></li>
-                          </ol>
-                      </div>
-
-                      <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                          <h4 className="font-black text-blue-800 mb-2 text-sm uppercase tracking-wider">Solusi 2 (Pasti Berhasil)</h4>
-                          <p className="text-xs text-blue-600 mb-2">Buat database jadi PUBLIC (bisa diakses tanpa login).</p>
-                          <p className="text-[10px] text-gray-500 mb-2">Copy script ini ke Tab <strong>Rules</strong> di Realtime Database:</p>
-                          <pre className="bg-gray-800 text-green-400 p-3 rounded-xl text-[10px] font-mono overflow-x-auto">
+                  <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100 mb-8">
+                      <h4 className="font-black text-blue-800 mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
+                          <span className="text-xl">✅</span> Pengaturan Rules Aman (Rekomendasi)
+                      </h4>
+                      <p className="text-xs text-blue-700 mb-4 leading-relaxed">
+                          Gunakan kode di bawah ini di tab <strong>Rules</strong> Firebase Console. 
+                          Kode ini menghilangkan peringatan keamanan merah karena hanya mengizinkan Admin (Login Email) untuk menulis data.
+                      </p>
+                      <pre className="bg-[#001a10] text-green-400 p-5 rounded-2xl text-[11px] font-mono overflow-x-auto border border-blue-200 shadow-inner">
 {`{
   "rules": {
     ".read": true,
-    ".write": true
+    // HANYA Admin (yang login pakai password) yang boleh tulis/hapus data
+    ".write": "auth.token.firebase.sign_in_provider === 'password'" 
   }
 }`}
-                          </pre>
-                      </div>
+                      </pre>
                   </div>
 
-                  <div className="mt-8 flex flex-col items-center gap-3">
-                    <button onClick={() => window.location.reload()} className="bg-[#00311e] text-white px-10 py-4 rounded-full font-black hover:bg-[#005a36] transition-all shadow-xl hover:scale-105">
-                        Saya Sudah Perbaiki, Refresh! 🔄
+                  <div className="flex justify-center gap-4">
+                    <button onClick={() => window.location.reload()} className="bg-[#00311e] text-white px-8 py-3 rounded-full font-black hover:bg-[#005a36] transition-all shadow-lg hover:scale-105">
+                        Sudah Diupdate? Refresh 🔄
                     </button>
-                    <button onClick={onLogout} className="text-gray-400 font-bold hover:text-red-500 text-xs uppercase tracking-widest mt-2">
-                        Logout Admin
+                    <button onClick={handleLogout} className="text-gray-400 font-bold hover:text-red-500 text-xs uppercase tracking-widest px-4 py-3">
+                        Logout & Login Ulang
                     </button>
                   </div>
               </div>
@@ -220,7 +218,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
         <div className="mt-auto pt-8 border-t border-white/10">
           <button 
-            onClick={onLogout}
+            onClick={handleLogout}
             className="w-full p-5 rounded-[24px] bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white font-black transition-all flex items-center justify-center gap-3"
           >
             Sign Out 🚪
