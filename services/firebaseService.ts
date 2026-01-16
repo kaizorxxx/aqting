@@ -2,7 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, remove, push, update } from 'firebase/database';
 import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut, User } from 'firebase/auth'; 
-import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../types';
+import { Course, Comment, AppSettings, BannerSlide, PopupSettings, CommentReply } from '../types';
 
 const firebaseConfig = {
     apiKey: "AIzaSyBakjlWu0_PCfJYNJRsNScmpD1bJVQetMU",
@@ -128,6 +128,19 @@ export const addComment = async (courseId: string, comment: Omit<Comment, 'id'>)
 export const deleteComment = async (courseId: string, commentId: string) => {
   await ensureAuthConnection();
   await remove(ref(db, `comments/${courseId}/${commentId}`));
+};
+
+// --- Replies ---
+export const replyToComment = async (courseId: string, commentId: string, reply: CommentReply) => {
+  await ensureAuthConnection();
+  const replyRef = ref(db, `comments/${courseId}/${commentId}/reply`);
+  await set(replyRef, reply);
+};
+
+export const deleteReply = async (courseId: string, commentId: string) => {
+    await ensureAuthConnection();
+    const replyRef = ref(db, `comments/${courseId}/${commentId}/reply`);
+    await remove(replyRef);
 };
 
 // --- Settings (Banners & Popups) ---
