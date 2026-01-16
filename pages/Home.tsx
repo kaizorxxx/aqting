@@ -312,18 +312,7 @@ const Home: React.FC = () => {
                           <span className="font-black text-[#00311e] text-[9px] uppercase tracking-tighter bg-[#00311e]/5 px-3 py-1 rounded-full">{c.author}</span>
                           <span className="text-[8px] text-gray-300 font-bold">{c.time}</span>
                         </div>
-                        <p className="text-[13px] text-gray-700 leading-relaxed font-bold tracking-tight mb-2">{c.text}</p>
-                        
-                        {/* Display Reply if exists */}
-                        {c.reply && (
-                            <div className="mt-3 ml-2 pl-3 border-l-2 border-[#00311e]/20">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="bg-[#00311e] text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Admin</span>
-                                    <span className="text-[8px] text-gray-300 font-bold">{c.reply.time}</span>
-                                </div>
-                                <p className="text-[12px] text-[#00311e] font-bold italic">{c.reply.text}</p>
-                            </div>
-                        )}
+                        <p className="text-[13px] text-gray-700 leading-relaxed font-bold tracking-tight">{c.text}</p>
                       </div>
                     ))}
                     {comments.length === 0 && (

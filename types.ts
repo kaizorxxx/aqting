@@ -11,19 +11,12 @@ export interface Course {
   uploadTime: string;
 }
 
-export interface CommentReply {
-  text: string;
-  time: string;
-  author: string; // Usually 'Admin'
-}
-
 export interface Comment {
   id?: string;
   author: string;
   text: string;
   time: string;
   timestamp: number;
-  reply?: CommentReply;
 }
 
 export interface BannerSlide {

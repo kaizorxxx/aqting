@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Course, AppSettings, BannerSlide, PopupSettings, Comment } from '../types';
+import { Course, AppSettings, BannerSlide, PopupSettings } from '../types';
 import { 
   subscribeToCourses, 
   subscribeToSettings, 
@@ -11,11 +11,7 @@ import {
   updateCourse,
   deleteCourse,
   ensureAuthConnection,
-  logoutAdmin,
-  subscribeToComments,
-  deleteComment,
-  replyToComment,
-  deleteReply
+  logoutAdmin
 } from '../services/firebaseService';
 
 interface AdminDashboardProps {
@@ -29,12 +25,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  
-  // Comment Management State
-  const [selectedCourseForComments, setSelectedCourseForComments] = useState<string>('');
-  const [commentsList, setCommentsList] = useState<Comment[]>([]);
-  const [replyText, setReplyText] = useState<string>('');
-  const [replyingToId, setReplyingToId] = useState<string | null>(null);
   
   // Forms state
   const [newCourse, setNewCourse] = useState<Omit<Course, 'id'>>({
@@ -71,16 +61,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
     return () => { unsubC(); unsubS(); };
   }, []);
-
-  // Fetch comments when a course is selected
-  useEffect(() => {
-      if (activeTab === 'comments' && selectedCourseForComments) {
-          const unsub = subscribeToComments(selectedCourseForComments, setCommentsList);
-          return () => unsub();
-      } else {
-          setCommentsList([]);
-      }
-  }, [selectedCourseForComments, activeTab]);
 
   const handleLogout = async () => {
       await logoutAdmin();
@@ -165,36 +145,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setEditingCourseId(null);
   };
 
-  // Logic Reply Comment
-  const handleReplySubmit = async (commentId: string) => {
-      if (!replyText.trim()) return;
-      setIsSubmitting(true);
-      try {
-          await replyToComment(selectedCourseForComments, commentId, {
-              text: replyText,
-              author: 'Admin',
-              time: new Date().toLocaleString('id-ID')
-          });
-          setReplyText('');
-          setReplyingToId(null);
-          // Alert not needed, UI updates automatically via subscription
-      } catch (e: any) {
-          console.error(e);
-          alert('Gagal mengirim balasan.');
-      } finally {
-          setIsSubmitting(false);
-      }
-  };
-
-  const handleDeleteReply = async (commentId: string) => {
-      if(!confirm('Hapus balasan admin?')) return;
-      try {
-          await deleteReply(selectedCourseForComments, commentId);
-      } catch (e) {
-          alert('Gagal menghapus balasan.');
-      }
-  };
-
   // Tampilan Error Permission Denied (SOLUSI KEAMANAN)
   if (authError === 'PERMISSION_DENIED') {
       return (
@@ -264,12 +214,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           >
             🎞️ Kelola Materi
           </button>
-          <button 
-            onClick={() => setActiveTab('comments')}
-            className={`w-full text-left p-5 rounded-[24px] flex items-center gap-4 font-black text-sm transition-all ${activeTab === 'comments' ? 'bg-white text-[#00311e] shadow-2xl scale-105' : 'hover:bg-white/10 opacity-70 hover:opacity-100'}`}
-          >
-            💬 Kelola Komentar
-          </button>
         </nav>
 
         <div className="mt-auto pt-8 border-t border-white/10">
@@ -285,9 +229,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       <main className="flex-1 p-8 md:p-16 overflow-y-auto max-h-screen custom-scrollbar">
         <header className="mb-16 flex justify-between items-end">
           <div>
-            <h2 className="text-5xl font-black text-[#00311e] tracking-tighter capitalize">
-                {activeTab === 'config' ? 'Konfigurasi' : (activeTab === 'courses' ? 'Koleksi Materi' : 'Moderasi Komentar')}
-            </h2>
+            <h2 className="text-5xl font-black text-[#00311e] tracking-tighter capitalize">{activeTab === 'config' ? 'Konfigurasi' : 'Koleksi Materi'}</h2>
             <p className="text-gray-400 font-bold mt-2">Pembaruan data akan langsung tampil di aplikasi pengguna.</p>
           </div>
           <div className="hidden md:block bg-[#00311e]/5 px-6 py-3 rounded-2xl border border-[#00311e]/10">
@@ -448,6 +390,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                           <p className="text-xs text-gray-400 mt-2 font-bold line-clamp-1">{c.description}</p>
                        </div>
                        <div className="flex gap-3">
+                         {/* Tombol Edit Baru */}
                          <button 
                             onClick={() => handleEditCourse(c)}
                             className="w-16 h-16 flex items-center justify-center bg-blue-50 text-blue-600 rounded-[28px] hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-90"
@@ -455,6 +398,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                          >
                             <span className="text-2xl">✏️</span>
                          </button>
+                         {/* Tombol Hapus */}
                          <button 
                             onClick={() => confirm('Hapus materi?') && deleteCourse(c.id)}
                             className="w-16 h-16 flex items-center justify-center bg-red-50 text-red-500 rounded-[28px] hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
@@ -472,126 +416,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 </div>
              </div>
           </div>
-        )}
-
-        {activeTab === 'comments' && (
-            <div className="animate-in fade-in duration-500 space-y-8">
-                {/* Course Selector */}
-                <div className="bg-white p-8 rounded-[40px] shadow-xl border border-gray-100 flex flex-col md:flex-row items-center gap-6">
-                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl">
-                        📺
-                    </div>
-                    <div className="flex-1 w-full">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Pilih Materi Video</label>
-                        <select 
-                            value={selectedCourseForComments} 
-                            onChange={(e) => setSelectedCourseForComments(e.target.value)}
-                            className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-[#00311e] outline-none focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                        >
-                            <option value="">-- Pilih Materi untuk Lihat Komentar --</option>
-                            {courses.map(c => (
-                                <option key={c.id} value={c.id}>{c.title} ({c.level})</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Comments List */}
-                <div className="grid gap-6">
-                    {selectedCourseForComments && commentsList.length > 0 ? (
-                        commentsList.map((comment: Comment) => (
-                            <div key={comment.id} className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 group hover:shadow-lg transition-all">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-[#00311e] rounded-full flex items-center justify-center text-white text-xs font-black">
-                                            {comment.author.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <h5 className="font-black text-[#00311e]">{comment.author}</h5>
-                                            <p className="text-[10px] text-gray-400 font-bold">{comment.time}</p>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => confirm('Hapus komentar user ini?') && deleteComment(selectedCourseForComments, comment.id!)}
-                                        className="text-gray-300 hover:text-red-500 transition-colors p-2"
-                                        title="Hapus Komentar"
-                                    >
-                                        🗑️
-                                    </button>
-                                </div>
-                                
-                                <p className="text-gray-600 font-medium ml-13 pl-13 mb-6 leading-relaxed bg-gray-50 p-4 rounded-2xl border border-gray-100 inline-block min-w-[50%]">
-                                    {comment.text}
-                                </p>
-
-                                {/* Admin Reply Section */}
-                                <div className="ml-8 md:ml-12 border-l-2 border-gray-100 pl-6 mt-4">
-                                    {comment.reply ? (
-                                        <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 relative group/reply">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">ADMIN</span>
-                                                <span className="text-[10px] text-gray-400 font-bold">{comment.reply.time}</span>
-                                            </div>
-                                            <p className="text-blue-900 font-bold text-sm">{comment.reply.text}</p>
-                                            <button 
-                                                onClick={() => handleDeleteReply(comment.id!)}
-                                                className="absolute top-2 right-2 opacity-0 group-hover/reply:opacity-100 text-red-400 hover:text-red-600 transition-all text-xs"
-                                                title="Hapus Balasan"
-                                            >
-                                                Hapus
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            {replyingToId === comment.id ? (
-                                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                    <textarea 
-                                                        autoFocus
-                                                        value={replyText}
-                                                        onChange={(e) => setReplyText(e.target.value)}
-                                                        placeholder="Tulis balasan..."
-                                                        className="w-full p-4 bg-white border-2 border-blue-100 rounded-2xl text-sm font-bold focus:outline-none focus:border-blue-300 mb-3 h-24 resize-none"
-                                                    />
-                                                    <div className="flex gap-3">
-                                                        <button 
-                                                            disabled={isSubmitting}
-                                                            onClick={() => handleReplySubmit(comment.id!)}
-                                                            className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
-                                                        >
-                                                            Kirim Balasan 🚀
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => { setReplyingToId(null); setReplyText(''); }}
-                                                            className="text-gray-400 hover:text-gray-600 font-bold text-sm px-4"
-                                                        >
-                                                            Batal
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <button 
-                                                    onClick={() => setReplyingToId(comment.id!)}
-                                                    className="text-blue-500 font-black text-xs uppercase tracking-widest hover:text-blue-700 transition-colors flex items-center gap-2"
-                                                >
-                                                    ↩️ Balas Komentar
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="text-center py-20 bg-white rounded-[40px] border-2 border-dashed border-gray-200">
-                            {selectedCourseForComments ? (
-                                <p className="text-gray-300 font-bold italic text-xl">Belum ada komentar di video ini.</p>
-                            ) : (
-                                <p className="text-gray-300 font-bold italic text-xl">👆 Pilih materi video di atas dulu.</p>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
         )}
       </main>
     </div>
