@@ -5,8 +5,8 @@ import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../typ
 // ==========================================
 // KONFIGURASI SUPABASE (WAJIB DIISI)
 // ==========================================
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co'; 
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://ktmsaktnbfqhklelbrul.supabase.co'; 
+const SUPABASE_ANON_KEY = 'sb_publishable_CvbbS3H7X6iyNjNGPWtuiw_hapIgt5e';
 
 const isConfigured = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
 
