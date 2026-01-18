@@ -154,7 +154,7 @@ const Home: React.FC = () => {
       <section className="pt-20 md:pt-24 bg-black relative">
         <div className="relative h-[300px] md:h-[600px] w-full group">
           <Swiper
-            key={`swiper-${bannerList.length}`} // CRITICAL: Reset swiper when banner count changes
+            key={`swiper-${bannerList.length}`}
             modules={[Autoplay, Pagination, Navigation]}
             autoplay={{ delay: 10000, disableOnInteraction: false }}
             pagination={{ 
@@ -176,14 +176,9 @@ const Home: React.FC = () => {
                   rel="noopener noreferrer"
                   className="relative h-full w-full flex items-center justify-center overflow-hidden cursor-pointer"
                 >
-                  <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover opacity-60 scale-100 animate-gentle-zoom" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
-                  <div className="relative z-10 text-center px-6 max-w-5xl">
-                    <p className="text-white/60 text-[8px] md:text-xs font-black mb-4 md:mb-6 tracking-[0.5em] uppercase drop-shadow-lg">{banner.title}</p>
-                    <h2 className="text-2xl md:text-7xl font-black text-[#3ee83e] mb-8 md:mb-12 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] tracking-tighter leading-none italic">
-                        {banner.subtitle}
-                    </h2>
-                  </div>
+                  <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover opacity-80 scale-100 animate-gentle-zoom" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                  {/* TEXT & SUBTITLE REMOVED HERE AS REQUESTED */}
                 </a>
               </SwiperSlide>
             ))}
@@ -206,7 +201,8 @@ const Home: React.FC = () => {
           )}
         </div>
 
-        <div className={`absolute -bottom-2 left-0 right-0 h-40 bg-gradient-to-t transition-all duration-700 ${isDarkMode ? 'from-[#0a0a0a]' : 'from-[#fdfdf1]'} via-transparent to-transparent z-10 pointer-events-none backdrop-blur-[4px]`} />
+        {/* Removed backdrop-blur-[4px] to fix "leaky box", kept gradient */}
+        <div className={`absolute -bottom-2 left-0 right-0 h-40 bg-gradient-to-t transition-all duration-700 ${isDarkMode ? 'from-[#0a0a0a]' : 'from-[#fdfdf1]'} via-transparent to-transparent z-10 pointer-events-none`} />
       </section>
 
       <div className="container mx-auto px-6 max-w-6xl mt-8 md:mt-16 relative z-20">
