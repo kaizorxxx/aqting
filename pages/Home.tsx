@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Course, AppSettings, BannerSlide } from '../types';
-import { subscribeToCourses, subscribeToSettings, subscribeToComments, addComment } from '../services/firebaseService';
+import { subscribeToCourses, subscribeToSettings, subscribeToComments, addComment } from '../services/supabaseService';
 import CourseCard from '../components/CourseCard';
 import Popup from '../components/Popup';
 import { Swiper, SwiperSlide } from 'swiper/react';

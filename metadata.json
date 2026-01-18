@@ -1,6 +1,6 @@
 {
   "name": "AQTING",
-  "description": "A high-end video editing course platform with dynamic admin controls, Firebase integration, and a mobile-first responsive design.",
+  "description": "A high-end video editing course platform with dynamic admin controls, Supabase integration, and a mobile-first responsive design.",
   "requestFramePermissions": [
     "camera",
     "microphone"

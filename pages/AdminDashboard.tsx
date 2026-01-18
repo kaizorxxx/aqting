@@ -12,7 +12,7 @@ import {
   deleteCourse,
   ensureAuthConnection,
   logoutAdmin
-} from '../services/firebaseService';
+} from '../services/supabaseService';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -38,16 +38,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   });
 
   useEffect(() => {
-    // Jalankan auth check di background
-    ensureAuthConnection();
+    // Check auth on load
+    ensureAuthConnection().then(user => {
+        if (!user) {
+            // Optional: redirect logic if strictly needed, 
+            // currently handled by parent component redirect
+        }
+    });
 
     const handleDataError = (err: Error) => {
-        if (err.message.toLowerCase().includes('permission_denied')) {
+        // Handle RLS errors from Supabase
+        if (err.message.includes('policy') || err.message.includes('permission denied')) {
             setAuthError('PERMISSION_DENIED');
-        } else if (err.message.toLowerCase().includes('client is offline')) {
-            // Abaikan offline sementara
-        } else {
-             setAuthError('PERMISSION_DENIED');
         }
     };
 
@@ -74,8 +76,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       alert('Pengaturan Popup berhasil diperbarui! 📢');
     } catch (e: any) {
       console.error(e);
-      if (e.message.toLowerCase().includes('permission_denied')) setAuthError('PERMISSION_DENIED');
-      else alert('Gagal memperbarui popup. Pastikan koneksi stabil.');
+      if (e.message.includes('policy')) setAuthError('PERMISSION_DENIED');
+      else alert('Gagal memperbarui popup: ' + e.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -93,8 +95,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       alert('Banner baru berhasil ditambahkan! 🖼️');
     } catch (e: any) {
       console.error(e);
-      if (e.message.toLowerCase().includes('permission_denied')) setAuthError('PERMISSION_DENIED');
-      else alert('Gagal menambah banner.');
+      if (e.message.includes('policy')) setAuthError('PERMISSION_DENIED');
+      else alert('Gagal menambah banner: ' + e.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -118,8 +120,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       setEditingCourseId(null);
     } catch (e: any) {
       console.error(e);
-      if (e.message.toLowerCase().includes('permission_denied')) setAuthError('PERMISSION_DENIED');
-      else alert('Gagal menyimpan materi.');
+      if (e.message.includes('policy')) setAuthError('PERMISSION_DENIED');
+      else alert('Gagal menyimpan materi: ' + e.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -145,41 +147,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setEditingCourseId(null);
   };
 
-  // Tampilan Error Permission Denied (SOLUSI KEAMANAN)
+  // Tampilan Error Permission Denied (Supabase RLS)
   if (authError === 'PERMISSION_DENIED') {
       return (
           <div className="min-h-screen bg-[#fff0f0] flex items-center justify-center p-8">
               <div className="bg-white max-w-4xl w-full p-10 rounded-[40px] shadow-2xl border-4 border-red-100">
                   <div className="text-center">
                     <div className="text-6xl mb-6">🔒</div>
-                    <h2 className="text-3xl font-black text-red-600 mb-4">Database Terkunci (Permission Denied)</h2>
+                    <h2 className="text-3xl font-black text-red-600 mb-4">Akses Database Ditolak (RLS Policy)</h2>
                     <p className="text-gray-600 mb-8 font-medium max-w-lg mx-auto">
-                        Anda tidak memiliki izin untuk mengubah data. Ini karena Anda menggunakan aturan keamanan baru tapi belum login sebagai Admin yang valid, atau Rules belum diupdate.
+                        Anda tidak memiliki izin untuk mengubah data. Pastikan Anda sudah login sebagai Admin dan Policies di Supabase sudah dikonfigurasi.
                     </p>
                   </div>
                   
                   <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100 mb-8">
                       <h4 className="font-black text-blue-800 mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
-                          <span className="text-xl">✅</span> Pengaturan Rules Aman (Rekomendasi)
+                          <span className="text-xl">✅</span> Konfigurasi RLS Supabase
                       </h4>
                       <p className="text-xs text-blue-700 mb-4 leading-relaxed">
-                          Gunakan kode di bawah ini di tab <strong>Rules</strong> Firebase Console. 
-                          Kode ini menghilangkan peringatan keamanan merah karena hanya mengizinkan Admin (Login Email) untuk menulis data.
+                          Jalankan SQL ini di Supabase SQL Editor untuk mengizinkan Admin melakukan Edit/Delete, dan Public hanya Read:
                       </p>
                       <pre className="bg-[#001a10] text-green-400 p-5 rounded-2xl text-[11px] font-mono overflow-x-auto border border-blue-200 shadow-inner">
-{`{
-  "rules": {
-    ".read": true,
-    // HANYA Admin (yang login pakai password) yang boleh tulis/hapus data
-    ".write": "auth.token.firebase.sign_in_provider === 'password'" 
-  }
-}`}
+{`-- Contoh Policy (Jalankan untuk tiap tabel)
+create policy "Enable read access for all users" on courses for select using (true);
+create policy "Enable insert for authenticated users only" on courses for insert with check (auth.role() = 'authenticated');
+create policy "Enable update for authenticated users only" on courses for update using (auth.role() = 'authenticated');
+create policy "Enable delete for authenticated users only" on courses for delete using (auth.role() = 'authenticated');`}
                       </pre>
                   </div>
 
                   <div className="flex justify-center gap-4">
                     <button onClick={() => window.location.reload()} className="bg-[#00311e] text-white px-8 py-3 rounded-full font-black hover:bg-[#005a36] transition-all shadow-lg hover:scale-105">
-                        Sudah Diupdate? Refresh 🔄
+                        Refresh 🔄
                     </button>
                     <button onClick={handleLogout} className="text-gray-400 font-bold hover:text-red-500 text-xs uppercase tracking-widest px-4 py-3">
                         Logout & Login Ulang
@@ -198,7 +197,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             <img src="https://api.deline.web.id/sIzpbEAP1y.png" className="w-8 h-8 object-contain filter brightness-0 invert" alt="Logo" />
             <h1 className="text-3xl font-black italic tracking-tighter">AQTING</h1>
           </div>
-          <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Control Panel</p>
+          <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Supabase Admin Panel</p>
         </div>
         
         <nav className="flex-1 space-y-4">
@@ -230,11 +229,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         <header className="mb-16 flex justify-between items-end">
           <div>
             <h2 className="text-5xl font-black text-[#00311e] tracking-tighter capitalize">{activeTab === 'config' ? 'Konfigurasi' : 'Koleksi Materi'}</h2>
-            <p className="text-gray-400 font-bold mt-2">Pembaruan data akan langsung tampil di aplikasi pengguna.</p>
+            <p className="text-gray-400 font-bold mt-2">Pembaruan data akan langsung tampil di aplikasi pengguna (Realtime).</p>
           </div>
           <div className="hidden md:block bg-[#00311e]/5 px-6 py-3 rounded-2xl border border-[#00311e]/10">
             <span className="text-[10px] font-black text-[#00311e] uppercase tracking-widest">Status Sistem:</span>
-            <span className="ml-2 text-green-600 font-bold text-xs uppercase tracking-widest animate-pulse">Online</span>
+            <span className="ml-2 text-green-600 font-bold text-xs uppercase tracking-widest animate-pulse">Supabase Connected</span>
           </div>
         </header>
 

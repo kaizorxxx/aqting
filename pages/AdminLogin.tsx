@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginAdmin } from '../services/firebaseService';
+import { loginAdmin } from '../services/supabaseService';
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -23,17 +23,16 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
     
     try {
         await loginAdmin(email, password);
-        // Login berhasil via Firebase
         onLogin();
         navigate('/dashboard');
-    } catch (firebaseErr: any) {
-        console.error("Login Failed:", firebaseErr);
-        if (firebaseErr.code === 'auth/invalid-credential' || firebaseErr.code === 'auth/user-not-found' || firebaseErr.code === 'auth/wrong-password') {
-            setError('Email atau password salah. Pastikan Anda sudah membuat akun di Firebase Authentication.');
-        } else if (firebaseErr.code === 'auth/too-many-requests') {
-            setError('Terlalu banyak percobaan gagal. Silakan coba lagi nanti.');
+    } catch (err: any) {
+        console.error("Login Failed:", err);
+        if (err.message.includes('Invalid login credentials')) {
+            setError('Email atau password salah.');
+        } else if (err.message.includes('Email not confirmed')) {
+            setError('Email belum dikonfirmasi.');
         } else {
-            setError(`Gagal Login: ${firebaseErr.message}`);
+            setError(`Gagal Login: ${err.message}`);
         }
         setLoading(false);
     }
@@ -47,12 +46,12 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
              <img src={LOGO_URL} alt="Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-4xl font-black text-[#00311e] tracking-tighter italic leading-none">AQTING ADMIN</h1>
-          <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.3em] mt-4">Secure Database Access</p>
+          <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.3em] mt-4">Secure Database Access (Supabase)</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           {error && (
-            <div className="bg-red-50 text-red-600 p-5 rounded-2xl text-xs font-black border border-red-100 animate-in fade-in slide-in-from-top duration-300">
+            <div className={`p-5 rounded-2xl text-xs font-black border animate-in fade-in slide-in-from-top duration-300 bg-red-50 text-red-600 border-red-100`}>
                ⚠️ {error}
             </div>
           )}
