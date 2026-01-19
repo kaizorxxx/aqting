@@ -8,7 +8,7 @@ import { Course, Comment, AppSettings, BannerSlide, PopupSettings } from '../typ
 const SUPABASE_URL = 'https://jvwwazeuxmisehplhmtl.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3dhemV1eG1pc2VocGxobXRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0ODM2NjUsImV4cCI6MjA4NDA1OTY2NX0.72ydk1kZOO_WnQthfHKyuFZHJwmxk0Zi4kOWjkYLzy0';
 
-const isConfigured = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
+const isConfigured = !SUPABASE_URL.includes('https://jvwwazeuxmisehplhmtl.supabase.co');
 
 if (!isConfigured) {
     console.warn("⚠️ SUPABASE BELUM DIKONFIGURASI: Fitur database dinonaktifkan sementara. Silakan edit services/supabaseService.ts");
